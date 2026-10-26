@@ -4,66 +4,136 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="AFAL Site Market — магазин готових сайтів.">
+<meta name="description" content="AFAL Site Market — замовлення індивідуальних сайтів.">
 <title>AFAL Site Market</title>
 <style>
-*{box-sizing:border-box}
+*{box-sizing:border-box;scroll-behavior:smooth}
 body{margin:0;font-family:Arial,sans-serif;background:#101225;color:#f4f6ff;line-height:1.6}
-header{text-align:center;padding:48px 18px;background:linear-gradient(135deg,#29245b,#101225)}
-h1{font-size:36px;margin:0 0 12px;color:#a99cff}
+header{text-align:center;padding:55px 18px;background:linear-gradient(135deg,#29245b,#101225)}
+h1{font-size:clamp(30px,6vw,44px);margin:0 0 12px;color:#a99cff}
 header p{color:#d3d7ef}
 main{max-width:1000px;margin:auto;padding:28px 16px}
 h2{text-align:center}
-.products{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:18px}
-.card{background:#1b203a;border:1px solid #393f66;border-radius:16px;padding:22px;text-align:center}
-.emoji{font-size:42px}
-.price{font-size:28px;font-weight:bold;color:#50e0ca;margin:16px 0}
-.btn{display:inline-block;background:#8171f5;color:white;text-decoration:none;padding:12px 18px;border-radius:10px;font-weight:bold}
+.products{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px}
+.card{background:#1b203a;border:1px solid #393f66;border-radius:16px;padding:24px 18px;text-align:center;transition:transform .2s,border-color .2s}
+.card:hover{transform:translateY(-4px);border-color:#8171f5}
+.emoji{font-size:46px}
+.btn{display:inline-block;background:#8171f5;color:white;text-decoration:none;border:0;padding:12px 20px;border-radius:10px;font-weight:bold;cursor:pointer;font-size:15px}
 .btn:hover{background:#6958df}
-.contact{text-align:center;background:#1b203a;border-radius:16px;padding:25px;margin-top:28px}
-footer{text-align:center;color:#aeb5d4;padding:25px}
+.card .btn{width:100%;margin-top:12px}
+.secondary{background:#303653}
+.secondary:hover{background:#41496d}
+.panel{background:#1b203a;border:1px solid #393f66;border-radius:16px;padding:25px;margin-top:28px;text-align:center}
+.hidden{display:none}
+.contact{border-color:#4b4486}
+.telegram{background:#229ED9}
+.telegram:hover{background:#168ac2}
 .small{font-size:13px;color:#b7bfdc}
+footer{text-align:center;color:#aeb5d4;padding:25px}
 </style>
 </head>
 <body>
 <header>
   <h1>AFAL Site Market</h1>
-  <p>Магазин готових сайтів та вебпроєктів</p>
-  <a class="btn" href="#catalog">Переглянути сайти</a>
+  <p>Твоя ідея — наш наступний вебпроєкт.</p>
+  <a class="btn" href="#catalog">Обрати тип сайту</a>
 </header>
+
 <main>
-  <h2 id="catalog">Обери свій сайт</h2>
+  <h2 id="catalog">Який сайт тобі потрібен?</h2>
+  <p style="text-align:center;color:#b7bfdc">
+    Обери категорію, щоб дізнатися, як замовити власний сайт.
+  </p>
+
   <div class="products">
     <article class="card">
       <div class="emoji">🛍️</div>
       <h3>Магазин товарів</h3>
-      <p>Сайт-вітрина для товарів і замовлень.</p>
-      <div class="price">$120 USD</div>
-      <a class="btn" href="tel:+380974490533">Замовити</a>
+      <p>Індивідуальний дизайн для товарів, каталогу та замовлень.</p>
+      <button class="btn" data-category="Магазин товарів">Переглянути</button>
     </article>
+
     <article class="card">
       <div class="emoji">🎮</div>
       <h3>Ігровий сайт</h3>
-      <p>Сайт для ігрового проєкту, новин і спільноти.</p>
-      <div class="price">$150 USD</div>
-      <a class="btn" href="tel:+380974490533">Замовити</a>
+      <p>Сайт для гри, ігрового проєкту або спільноти.</p>
+      <button class="btn" data-category="Ігровий сайт">Переглянути</button>
     </article>
+
     <article class="card">
       <div class="emoji">💼</div>
       <h3>Сайт-портфоліо</h3>
-      <p>Сторінка для демонстрації робіт і послуг.</p>
-      <div class="price">$350 USD</div>
-      <a class="btn" href="tel:+380974490533">Замовити</a>
+      <p>Покажи свої роботи, послуги та проєкти в інтернеті.</p>
+      <button class="btn" data-category="Сайт-портфоліо">Переглянути</button>
+    </article>
+
+    <article class="card">
+      <div class="emoji">🌐</div>
+      <h3>Інший сайт</h3>
+      <p>Маєш власну ідею? Обговоримо індивідуальний проєкт.</p>
+      <button class="btn" data-category="Інший сайт">Переглянути</button>
     </article>
   </div>
-  <section class="contact" id="contact">
-    <h2>Зв'язок із продавцем</h2>
-    <p>Є питання або хочеш замовити сайт?</p>
-    <p><strong>Телефон: 097 449 0533</strong></p>
-    <a class="btn" href="tel:+380974490533">Зателефонувати</a>
-    <p class="small">Ціни вказані в доларах США. Деталі замовлення узгоджуються окремо.</p>
+
+  <section class="panel hidden" id="order-menu">
+    <div class="emoji">📂</div>
+    <h2 id="selected-title">Обрана категорія</h2>
+    <h3>Готових сайтів поки немає</h3>
+    <p>Кожен проєкт створюється під вимоги замовника. Натисни нижче, щоб обговорити свій сайт.</p>
+    <button class="btn" id="create-site">Створити сайт</button>
+    <br><br>
+    <button class="btn secondary" id="back-to-catalog">Назад до категорій</button>
+  </section>
+
+  <section class="panel contact hidden" id="contact">
+    <div class="emoji">🚀</div>
+    <h2>Замовити сайт в AFAL</h2>
+    <p id="contact-description">Напиши в Telegram і розкажи про свою ідею.</p>
+    <p>Обговоримо дизайн, функції та вартість проєкту.</p>
+    <a class="btn telegram" href="https://t.me/artemis393" target="_blank" rel="noopener noreferrer">
+      Написати в Telegram
+    </a>
+    <p class="small">Вартість узгоджується індивідуально перед початком роботи.</p>
+    <button class="btn secondary" id="back-to-menu">Назад</button>
   </section>
 </main>
+
 <footer>© 2026 AFAL Site Market</footer>
+
+<script>
+const orderMenu=document.getElementById("order-menu");
+const contact=document.getElementById("contact");
+const selectedTitle=document.getElementById("selected-title");
+const contactDescription=document.getElementById("contact-description");
+let selectedCategory="";
+
+document.querySelectorAll("[data-category]").forEach(button=>{
+  button.addEventListener("click",()=>{
+    selectedCategory=button.dataset.category;
+    selectedTitle.textContent=selectedCategory;
+    orderMenu.classList.remove("hidden");
+    contact.classList.add("hidden");
+    orderMenu.scrollIntoView({behavior:"smooth",block:"center"});
+  });
+});
+
+document.getElementById("create-site").addEventListener("click",()=>{
+  contactDescription.textContent="Ти обрав: "+selectedCategory+". Напиши в Telegram, щоб обговорити свій проєкт.";
+  contact.classList.remove("hidden");
+  contact.scrollIntoView({behavior:"smooth",block:"center"});
+});
+
+document.getElementById("back-to-catalog").addEventListener("click",()=>{
+  orderMenu.classList.add("hidden");
+  contact.classList.add("hidden");
+  document.getElementById("catalog").scrollIntoView({behavior:"smooth"});
+});
+
+document.getElementById("back-to-menu").addEventListener("click",()=>{
+  contact.classList.add("hidden");
+  orderMenu.classList.remove("hidden");
+  orderMenu.scrollIntoView({behavior:"smooth",block:"center"});
+});
+</script>
 </body>
 </html>
