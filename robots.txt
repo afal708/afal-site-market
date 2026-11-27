@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://afal708.github.io/afal-site-market/sitemap.xml

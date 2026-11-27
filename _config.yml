@@ -1,0 +1,6 @@
+exclude:
+  - README.md
+  - package.json
+  - scripts
+  - server
+  - tests
