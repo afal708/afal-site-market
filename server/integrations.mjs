@@ -1,10 +1,11 @@
-import { consult, DESIGNS, FEATURES, formatPrice, MEMBERSHIPS, PACKS, SERVICES } from '../public/catalog.mjs';
+import { consult, DESIGNS, FEATURES, formatPrice, MEMBERSHIPS, PACKS, PORTALS, SERVICES } from '../public/catalog.mjs';
 
 export function createTelegram({ telegramToken, telegramChatId, fetcher }) {
   if (!telegramToken || !telegramChatId) return null;
 
   return async function sendTelegram(row) {
     const order = JSON.parse(row.request_json);
+    const portal = PORTALS.find((item) => item.id === order.serviceId);
     const service = SERVICES.find((item) => item.id === order.serviceId);
     const design = DESIGNS.find((item) => item.id === order.design);
     const features = order.features.map((id) => FEATURES.find((item) => item.id === id)?.label.uk ?? id);
@@ -12,16 +13,21 @@ export function createTelegram({ telegramToken, telegramChatId, fetcher }) {
     const membership = MEMBERSHIPS.find((item) => item.id === order.membershipId);
     const amount = row.quoted_amount + row.quoted_fraction / 100;
     const price = formatPrice({ amount, currency: row.quoted_currency });
+    const marketPrice = portal && order.marketEstimate !== undefined
+      ? formatPrice({ amount: order.marketEstimate, currency: portal.currency })
+      : '';
+    const quoteLabel = membership ? 'Попередній розрахунок за умови підтвердження підписки' : 'Попередній розрахунок';
     const summary = [
       'Нове замовлення AFAL Site Market',
       `Код: ${row.code}`,
-      `Послуга: ${service?.name.uk ?? order.serviceId}`,
+      `Послуга: ${(portal ?? service)?.name.uk ?? order.serviceId}`,
       pack && `Пакет: ${pack.name} (−${pack.discount}%)`,
       `Дизайн: ${design?.label.uk ?? order.design}`,
       `Сторінок: ${order.pages}`,
       `Доповнення: ${features.join(', ') || 'без доповнень'}`,
       membership && `Підписка для кошторису: ${membership.name} (−${membership.discount}%). Підписку слід підтвердити вручну.`,
-      membership ? `Попередній розрахунок за умови підтвердження підписки: ${price}` : `Попередній розрахунок: ${price}`,
+      marketPrice && `Орієнтовна ринкова оцінка: ${marketPrice}. Потрібно перевірити, чи відповідає вона обсягу робіт.`,
+      portal && !marketPrice ? 'Для розрахунку потрібна ринкова оцінка.' : `${quoteLabel}: ${price}`,
       `Бюджет клієнта: ${order.budget === null ? 'не вказано' : `${order.budget} ${row.quoted_currency}`}`,
       `Ім’я: ${order.name}`,
       `Контакт: ${order.contact}`,

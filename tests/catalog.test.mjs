@@ -7,9 +7,11 @@ import {
   estimateBreakdown,
   formatPrice,
   MAX_CONSULT_LENGTH,
+  MAX_MARKET_ESTIMATE,
   MAX_PAGES,
   MEMBERSHIPS,
   PACKS,
+  PORTALS,
   SERVICES,
 } from '../public/catalog.mjs';
 
@@ -63,7 +65,7 @@ test('package prices are 25% below the same services ordered separately', () => 
 test('memberships apply once to service work and stack after the pack discount', () => {
   assert.deepEqual(
     MEMBERSHIPS.map(({ id, monthly, annual, discount }) => [id, monthly, annual, discount]),
-    [['plus', 15, 99, 5], ['pro', 100, 950, 20]],
+    [['plus', 15, 99, 5], ['pro', 100, 950, 20], ['portal', 45, 300, 50]],
   );
   assert.deepEqual(estimate({ ...DEFAULT_ORDER, membershipId: 'plus' }), { amount: 38, currency: 'USD' });
   const start = PACKS[0];
@@ -76,6 +78,37 @@ test('memberships apply once to service work and stack after the pack discount',
     estimateBreakdown({ ...pro.config, packId: pro.id, membershipId: 'pro' }),
     { amount: 16800, currency: 'UAH', subtotal: 28000, packSavings: 7000, membershipSavings: 4200 },
   );
+});
+
+test('portal estimates use half the market reference for the configured scope', () => {
+  assert.deepEqual(
+    PORTALS.map(({ id, pages, currency }) => [id, pages, currency]),
+    [['small-portal', 5, 'UAH'], ['medium-portal', 10, 'UAH'], ['large-portal', 20, 'UAH']],
+  );
+  for (const portal of PORTALS) {
+    const order = { serviceId: portal.id, design: 'premium', pages: portal.pages + 2, features: ['cms'], membershipId: 'portal' };
+    assert.deepEqual(estimateBreakdown(order), {
+      amount: null, currency: 'UAH', subtotal: null, packSavings: 0, membershipSavings: 0,
+    });
+    assert.deepEqual(estimateBreakdown({ ...order, marketEstimate: 35000.03 }), {
+      amount: 17500.02, currency: 'UAH', subtotal: 35000.03, packSavings: 0, membershipSavings: 17500.01,
+    });
+    assert.deepEqual(estimate({ ...order, marketEstimate: MAX_MARKET_ESTIMATE }), {
+      amount: MAX_MARKET_ESTIMATE / 2, currency: 'UAH',
+    });
+  }
+});
+
+test('portal discount and market reference are exclusive to AFAL Portal orders', () => {
+  const order = { ...DEFAULT_ORDER, serviceId: 'small-portal', pages: 5, membershipId: 'portal' };
+  for (const change of [{ membershipId: '' }, { membershipId: 'plus' }, { membershipId: 'pro' }, { packId: 'start-pack' }]) {
+    assert.throws(() => estimate({ ...order, ...change }), RangeError);
+  }
+  for (const marketEstimate of [0, 0.99, 1.001, '12000', null, Infinity, NaN, MAX_MARKET_ESTIMATE + 0.01]) {
+    assert.throws(() => estimate({ ...order, marketEstimate }), RangeError);
+  }
+  assert.throws(() => estimate({ ...DEFAULT_ORDER, membershipId: 'portal' }), RangeError);
+  assert.throws(() => estimate({ ...DEFAULT_ORDER, marketEstimate: 12000 }), RangeError);
 });
 
 test('package contents must match the advertised services, regardless of feature order', () => {

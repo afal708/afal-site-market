@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import test from 'node:test';
-import { DEFAULT_ORDER, PACKS } from '../public/catalog.mjs';
+import { DEFAULT_ORDER, PACKS, PORTALS } from '../public/catalog.mjs';
 import { createAfalServer } from '../server/server.mjs';
 
 const adminToken = 'mock-administrator-credential';
@@ -155,6 +155,54 @@ test('validates package selections and sends the durable, conditional membership
   } finally {
     await second.stop();
   }
+});
+
+test('accepts portal requests without a quote and notifies Telegram with a conditional quote when a market estimate is supplied', async (t) => {
+  const portal = PORTALS.find(({ id }) => id === 'small-portal');
+  const body = { ...order, serviceId: portal.id, pages: portal.pages, membershipId: 'portal' };
+  const marketEstimate = 12345.67;
+  const notifications = [];
+  const env = { TELEGRAM_BOT_TOKEN: 'mock-token', TELEGRAM_CHAT_ID: '123' };
+  const server = await start(t, env, async (_, options) => {
+    notifications.push(JSON.parse(options.body).text);
+    return Response.json({ ok: true });
+  });
+
+  const pending = await server.call('/api/orders', { body, headers: idempotency() });
+  assert.equal(pending.response.status, 201);
+  assert.equal(pending.data.notification, 'sent');
+  assert.ok(notifications[0].includes(portal.name.uk));
+  assert.match(notifications[0], /AFAL Portal \(−50%\).*вручну/);
+  assert.match(notifications[0], /потрібна ринкова оцінка/);
+  assert.doesNotMatch(notifications[0], /:\s*0\s+грн/);
+
+  const headers = idempotency();
+  const priced = await server.call('/api/orders', { body: { ...body, marketEstimate }, headers });
+  assert.equal(priced.response.status, 201);
+  assert.equal(priced.data.notification, 'sent');
+  assert.match(notifications[1], /Орієнтовна ринкова оцінка: 12\s345,67 грн.*перевірити/);
+  assert.match(notifications[1], /за умови підтвердження підписки: 6\s172,84 грн/);
+  const replay = await server.call('/api/orders', { body: { ...body, marketEstimate }, headers });
+  assert.equal(replay.response.status, 200);
+  assert.equal(replay.data.code, priced.data.code);
+  const changed = await server.call('/api/orders', { body: { ...body, marketEstimate: 12345.68 }, headers });
+  assert.equal(changed.response.status, 409);
+
+  const invalidOrders = [
+    { ...body, membershipId: 'pro', marketEstimate },
+    { ...body, membershipId: '' },
+    { ...body, marketEstimate: '12345.67' },
+    { ...body, marketEstimate: 12.111 },
+    { ...body, packId: 'start-pack' },
+    { ...order, membershipId: 'portal' },
+    { ...order, marketEstimate },
+  ];
+  for (const invalid of invalidOrders) {
+    const rejected = await server.call('/api/orders', { body: invalid, headers: idempotency() });
+    assert.equal(rejected.response.status, 400);
+    assert.equal(rejected.data.error, 'invalid-order');
+  }
+  assert.equal(notifications.length, 2);
 });
 
 test('validates scope, body size, and configured browser origins', async (t) => {

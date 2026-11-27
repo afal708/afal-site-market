@@ -234,6 +234,11 @@ h3 { margin-bottom: .55rem; letter-spacing: -.025em; }
 .billing-option > span { color: var(--muted); font-size: .9rem; }
 .billing-option > strong { color: var(--accent); font-size: clamp(1.6rem,3vw,2.1rem); letter-spacing: -.05em; }
 .billing-option .button { width: fit-content; margin-top: .36rem; }
+.membership-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,19rem),1fr)); gap: .85rem; }
+.portal-plan { border-color: var(--accent); }
+.portal-card h4 { margin: 0 0 .4rem; font-size: 1.19rem; line-height: 1.25; letter-spacing: -.02em; }
+.portal-card p { margin: 0; }
+.portal-card > strong { color: var(--accent); font-size: .94rem; }
 
 .consult-panel, .contact-panel { display: grid; grid-template-columns: 1fr 1fr; align-items: start; gap: clamp(1.3rem,5vw,4rem); padding: clamp(1.3rem, 5vw, 3.25rem); background: linear-gradient(128deg, var(--accent-soft), var(--surface) 66%); border: 1px solid var(--line); border-radius: var(--radius); }
 .consult-panel h2 { font-size: clamp(2rem, 4.4vw, 3.3rem); }
@@ -258,6 +263,7 @@ h3 { margin-bottom: .55rem; letter-spacing: -.025em; }
 .field-grid, .checks { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: .75rem; }
 .field-grid .full { grid-column: 1/-1; }
 .builder-note { margin: 0; color: var(--muted); }
+.portal-market { max-width: 24rem; }
 .subtle { color: var(--subtle); font-weight: 450; }
 .input-suffix { position: relative; }
 .input-suffix input { padding-right: 4.4rem; }

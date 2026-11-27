@@ -2,7 +2,8 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
 import {
-  LANGS, SERVICES, DESIGNS, FEATURES, PACKS, MEMBERSHIPS, DEFAULT_ORDER, MAX_CONSULT_LENGTH,
+  LANGS, SERVICES, DESIGNS, FEATURES, PACKS, PORTALS, MEMBERSHIPS, DEFAULT_ORDER, MAX_CONSULT_LENGTH,
+  MIN_MARKET_ESTIMATE, MAX_MARKET_ESTIMATE,
   estimate, estimateBreakdown, formatPrice,
 } from '../public/catalog.mjs';
 import { copy } from './content.mjs';
@@ -104,12 +105,20 @@ function render(lang) {
         <a href="${esc(draft)}" class="button secondary small" target="_blank" rel="noopener noreferrer" data-membership-join="${plan.id}" data-membership-period="${period}">${t.activate}<span class="sr-only"> · ${plan.name}, ${label}</span></a>
       </div>`;
     };
-    return `<article class="offer-card membership-card">
-      <header class="offer-header"><h4>${plan.name}</h4><span class="offer-saving">−${plan.discount}% ${t.membershipDiscount}</span></header>
+    return `<article class="offer-card membership-card${plan.portalOnly ? ' portal-plan' : ''}">
+      <header class="offer-header"><h4>${plan.name}</h4><span class="offer-saving">${plan.portalOnly ? t.portalRate : `−${plan.discount}% ${t.membershipDiscount}`}</span></header>
       <div class="billing-options">${rate('monthly', t.month)}${rate('annual', t.year)}</div>
-      <a href="#order" class="button secondary" data-pick-membership="${plan.id}">${t.tryMembership}<span class="sr-only"> · ${plan.name}</span></a>
+      ${plan.portalOnly
+        ? `<a href="#portal-services" class="button primary">${t.viewPortals}</a>`
+        : `<a href="#order" class="button secondary" data-pick-membership="${plan.id}">${t.tryMembership}<span class="sr-only"> · ${plan.name}</span></a>`}
     </article>`;
   }).join('');
+  const portalCards = PORTALS.map(portal => `<article class="offer-card portal-card">
+    <div class="service-icon">${icon(portal.icon)}</div>
+    <div><h4>${portal.name[lang]}</h4><p>${portal.description[lang]}</p></div>
+    <strong>${t.portalRate}</strong>
+    <a href="#order" class="button secondary" data-pick-portal="${portal.id}">${t.choosePortal}<span class="sr-only"> · ${portal.name[lang]}</span></a>
+  </article>`).join('');
   const schema = JSON.stringify({
     '@context': 'https://schema.org', '@type': 'WebSite', name: 'AFAL Site Market',
     url: canonicalPage, inLanguage: lang, description: t.description,
@@ -192,7 +201,7 @@ function render(lang) {
     </section>
     <section class="section wrap" id="pricing">
       ${heading(t.pricing, t.pricingTitle, t.pricingIntro)}
-      <div class="pricing-links actions"><a href="#packs" class="button secondary small">${t.packs}</a><a href="#memberships" class="button secondary small">${t.memberships}</a></div>
+      <div class="pricing-links actions"><a href="#packs" class="button secondary small">${t.packs}</a><a href="#memberships" class="button secondary small">${t.memberships}</a><a href="#portal-services" class="button secondary small">${t.portals}</a></div>
       <div class="tier-grid">${tierPrice('budget',t.pricingBudget,t.pricingBudgetText)} ${tierPrice('pro',t.pricingPro,t.pricingProText)}</div>
       <p class="pricing-goal">${t.pricingGoal}</p>
       <section class="pricing-group" id="packs" aria-labelledby="packs-title">
@@ -201,8 +210,12 @@ function render(lang) {
       </section>
       <section class="pricing-group" id="memberships" aria-labelledby="memberships-title">
         <div class="section-heading"><h3 id="memberships-title">${t.memberships}</h3><p>${t.membershipIntro}</p></div>
-        <div class="tier-grid">${membershipCards}</div>
+        <div class="membership-grid">${membershipCards}</div>
         <p class="pricing-goal">${t.membershipNote}</p>
+      </section>
+      <section class="pricing-group" id="portal-services" aria-labelledby="portal-services-title">
+        <div class="section-heading"><h3 id="portal-services-title">${t.portalTitle}</h3><p>${t.portalIntro}</p></div>
+        <div class="service-grid">${portalCards}</div>
       </section>
     </section>
     <section class="section wrap" id="consult">
@@ -230,13 +243,24 @@ function render(lang) {
         <div class="builder-fields">
           <fieldset><legend>${t.configuration}</legend><div class="field-grid">
             <label class="field">${t.orderPack}<select name="packId" aria-describedby="pack-scope"><option value="">${t.noPack}</option>${PACKS.map(pack => `<option value="${pack.id}">${pack.name} · −${pack.discount}%</option>`).join('')}</select></label>
-            <label class="field">${t.orderMembership}<select name="membershipId" aria-describedby="membership-estimate-note"><option value="">${t.noMembership}</option>${MEMBERSHIPS.map(plan => `<option value="${plan.id}">${plan.name} · −${plan.discount}%</option>`).join('')}</select></label>
+            <label class="field">${t.orderMembership}<select name="membershipId" aria-describedby="membership-estimate-note portal-estimate-note"><option value="">${t.noMembership}</option>${MEMBERSHIPS.map(plan => plan.portalOnly
+              ? `<option value="${plan.id}" hidden disabled>${plan.name}</option>`
+              : `<option value="${plan.id}">${plan.name} · −${plan.discount}%</option>`).join('')}</select></label>
             <p class="form-note full builder-note" id="pack-scope" data-pack-scope hidden>${t.packDetails}</p>
-            <label class="field">${t.service}<select name="serviceId" required>${SERVICES.map(service => `<option value="${service.id}"${service.id === DEFAULT_ORDER.serviceId ? ' selected' : ''}>${service.name[lang]}</option>`).join('')}</select></label>
+            <label class="field">${t.service}<select name="serviceId" required>${SERVICES.map(service => `<option value="${service.id}"${service.id === DEFAULT_ORDER.serviceId ? ' selected' : ''}>${service.name[lang]}</option>`).join('')}
+              <optgroup label="${t.portals} · AFAL Portal">${PORTALS.map(portal => `<option value="${portal.id}">${portal.name[lang]}</option>`).join('')}</optgroup>
+            </select></label>
             <label class="field">${t.design}<select name="design" required>${DESIGNS.map(design => `<option value="${design.id}"${design.id === DEFAULT_ORDER.design ? ' selected' : ''}>${design.label[lang]}</option>`).join('')}</select></label>
             <label class="field">${t.pages}<input name="pages" type="number" min="1" max="50" value="${DEFAULT_ORDER.pages}" required></label>
             <label class="field"><span>${t.budgetField} <span class="subtle">· ${t.optional}</span></span><span class="input-suffix"><input name="budget" type="number" min="1" step="1" inputmode="numeric" placeholder="100"><span id="budget-currency">${currency}</span></span></label>
           </div></fieldset>
+          <fieldset data-portal-fields hidden disabled>
+            <legend>AFAL Portal</legend>
+            <label class="field portal-market"><span>${t.marketEstimate} <span class="subtle">· ${t.optional}</span></span>
+              <span class="input-suffix"><input name="marketEstimate" type="number" min="${MIN_MARKET_ESTIMATE}" max="${MAX_MARKET_ESTIMATE}" step="0.01" inputmode="decimal" aria-describedby="market-help"><span>${uk ? 'грн' : 'UAH'}</span></span>
+            </label>
+            <p id="market-help" class="form-note">${t.marketHelp}</p>
+          </fieldset>
           <fieldset><legend>${t.features}</legend><div class="checks">${FEATURES.map(feature => `<label class="check"><input name="features" type="checkbox" value="${feature.id}"><span>${feature.label[lang]}</span></label>`).join('')}</div></fieldset>
           <fieldset data-online-only hidden disabled><legend>${t.reply}</legend><div class="field-grid">
             <label class="field">${t.name}<input name="name" autocomplete="name" maxlength="100" required></label>
@@ -249,9 +273,10 @@ function render(lang) {
           <p class="total" aria-live="polite"><strong id="estimate-total">${initial.amount}</strong> <span id="estimate-currency">${currency}</span></p>
           <dl class="savings" data-estimate-discounts hidden>
             <div data-pack-savings hidden><dt>${t.packageSavings}</dt><dd data-pack-savings-amount></dd></div>
-            <div data-membership-savings hidden><dt>${t.membershipSavings}</dt><dd data-membership-savings-amount></dd></div>
+            <div data-membership-savings hidden><dt><span data-regular-savings-label>${t.membershipSavings}</span><span data-portal-savings-label hidden>${t.portalSavings}</span></dt><dd data-membership-savings-amount></dd></div>
           </dl>
           <p class="form-note" id="membership-estimate-note" data-membership-note hidden>${t.membershipNote}</p>
+          <p class="form-note" id="portal-estimate-note" data-portal-note hidden>${t.portalNote}</p>
           <p>${t.estimateNote}</p>
           <div class="estimate-actions"><button type="submit" class="button primary" data-order-submit><span data-order-submit-label>${t.submit}</span></button>${contactLink('secondary','data-telegram-fallback')}</div>
           <p class="feedback" data-order-feedback role="status"></p>

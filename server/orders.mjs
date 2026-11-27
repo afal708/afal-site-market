@@ -22,8 +22,8 @@ function text(value, max, min = 0, multiline = false) {
 export function normalizeOrder(raw) {
   if (raw.consent !== true || !['uk', 'en'].includes(raw.lang)) throw new RangeError('Invalid consent or language');
 
-  const { serviceId, design, pages, features, packId, membershipId } = raw;
-  estimate({ serviceId, design, pages, features, packId, membershipId });
+  const { serviceId, design, pages, features, packId, membershipId, marketEstimate } = raw;
+  estimate({ serviceId, design, pages, features, packId, membershipId, marketEstimate });
 
   let budget = raw.budget ?? null;
   if (typeof budget === 'string') {
@@ -41,6 +41,7 @@ export function normalizeOrder(raw) {
     lang: raw.lang,
     ...(packId ? { packId } : {}),
     ...(membershipId ? { membershipId } : {}),
+    ...(marketEstimate === undefined ? {} : { marketEstimate }),
   };
 }
 
@@ -135,7 +136,8 @@ export function createOrderStore(databasePath) {
       const code = `AFAL-${randomBytes(16).toString('hex').toUpperCase()}`;
       const now = Date.now();
       const { amount, currency } = estimate(order);
-      const quote = Math.round(amount * 100);
+      // A portal without a market estimate has no quote. The request records that the reference is absent.
+      const quote = amount === null ? 0 : Math.round(amount * 100);
       const result = insert.run(
         code, key, hash, serialized, Math.floor(quote / 100), quote % 100, currency,
         telegram ? 'pending' : 'unconfigured', now, now, now,

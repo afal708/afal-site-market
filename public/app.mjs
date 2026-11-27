@@ -1,5 +1,5 @@
 import {
-  DEFAULT_ORDER, DESIGNS, FEATURES, MAX_CONSULT_LENGTH, MEMBERSHIPS, PACKS, SERVICES,
+  DEFAULT_ORDER, DESIGNS, FEATURES, MAX_CONSULT_LENGTH, MEMBERSHIPS, PACKS, PORTALS, SERVICES,
   consult, estimate, estimateBreakdown, formatPrice,
 } from './catalog.mjs';
 import { API_BASE } from './deployment.mjs';
@@ -40,6 +40,8 @@ const copy = {
     codeCopied: 'Код скопійовано.',
     copyManually: 'Текст виділено. Скористайтеся командою копіювання.',
     rateLimited: 'Забагато запитів. Спробуйте за хвилину.',
+    onRequest: 'На запит',
+    portalPricePending: 'після ринкової оцінки',
     currencies: { USD: 'USD', UAH: 'грн' },
     statuses: {
       received: 'Отримано', 'in-review': 'На розгляді', 'in-progress': 'У роботі',
@@ -50,15 +52,16 @@ const copy = {
       pending: 'Сповіщення в Telegram очікує надсилання.',
       unconfigured: 'Сповіщення в Telegram тимчасово недоступне.',
     },
-    draft({ project, design, pages, features, price, budget, pack, membership }) {
+    draft({ project, design, pages, features, price, budget, pack, membership, portal, reference }) {
       return [
         'Вітаю! Хочу обговорити сайт з AFAL.',
         pack && `Пакет: ${pack.name} (−${pack.discount}%)`,
-        `Тип сайту: ${project}`,
+        portal ? `Розмір порталу: ${project}` : `Тип сайту: ${project}`,
         `Дизайн: ${design}`,
         `Сторінок: ${pages}`,
         features && `Додаткові функції: ${features}`,
         membership && `Підписка для розрахунку: ${membership.name} (−${membership.discount}% за підтвердженої активної підписки)`,
+        reference && `Орієнтир ринкової вартості: ${reference}`,
         `Попередній розрахунок: ${price}`,
         budget && `Бюджет: ${budget}`,
       ].filter(Boolean).join('\n');
@@ -90,6 +93,8 @@ const copy = {
     codeCopied: 'Code copied.',
     copyManually: 'Text selected. Use your device’s copy command.',
     rateLimited: 'Too many requests. Try again in a minute.',
+    onRequest: 'On request',
+    portalPricePending: 'after a market estimate',
     currencies: { USD: 'USD', UAH: 'UAH' },
     statuses: {
       received: 'Received', 'in-review': 'In review', 'in-progress': 'In progress',
@@ -100,15 +105,16 @@ const copy = {
       pending: 'The Telegram notification is pending.',
       unconfigured: 'Telegram notifications are temporarily unavailable.',
     },
-    draft({ project, design, pages, features, price, budget, pack, membership }) {
+    draft({ project, design, pages, features, price, budget, pack, membership, portal, reference }) {
       return [
         'Hi! I’d like to discuss a website with AFAL.',
         pack && `Package: ${pack.name} (−${pack.discount}%)`,
-        `Site type: ${project}`,
+        portal ? `Portal size: ${project}` : `Site type: ${project}`,
         `Design: ${design}`,
         `Pages: ${pages}`,
         features && `Additional features: ${features}`,
         membership && `Membership for this estimate: ${membership.name} (−${membership.discount}% after active membership is confirmed)`,
+        reference && `Indicative market estimate: ${reference}`,
         `Initial estimate: ${price}`,
         budget && `Budget: ${budget}`,
       ].filter(Boolean).join('\n');
@@ -127,6 +133,13 @@ const fields = orderForm?.elements;
 const packField = fields?.namedItem('packId');
 const membershipField = fields?.namedItem('membershipId');
 const featureFields = orderForm ? selectAll('input[name="features"]', orderForm) : [];
+const portalFields = orderForm && select('[data-portal-fields]', orderForm);
+const marketEstimateField = fields?.namedItem('marketEstimate');
+const portalMembership = MEMBERSHIPS.find(({ portalOnly }) => portalOnly);
+const portalMembershipOption = membershipField && select('option[value="portal"]', membershipField);
+const portalService = (serviceId) => PORTALS.find(({ id }) => id === serviceId);
+let regularMembershipId = '';
+let selectedPortalId = portalService(fields?.serviceId?.value)?.id;
 
 function apiDirectory() {
   const configured = (document.body.dataset.apiBase || API_BASE).trim();
@@ -263,13 +276,16 @@ function filterCatalog(tier) {
 for (const filter of filters) filter.addEventListener('click', () => filterCatalog(filter.dataset.catalogFilter));
 
 function builderConfig() {
+  const serviceId = fields.serviceId.value;
+  const marketEstimate = portalService(serviceId) && marketEstimateField?.value;
   return {
-    serviceId: fields.serviceId.value,
+    serviceId,
     design: fields.design.value,
     pages: Number(fields.pages.value),
     features: featureFields.filter((control) => control.checked).map((control) => control.value),
     ...(packField?.value && { packId: packField.value }),
     ...(membershipField?.value && { membershipId: membershipField.value }),
+    ...(marketEstimate && { marketEstimate: Number(marketEstimate) }),
   };
 }
 
@@ -282,20 +298,25 @@ function showSavings({ packSavings = 0, membershipSavings = 0, currency } = {}) 
 }
 
 function updateEstimator() {
+  const portal = portalService(fields.serviceId.value);
+  syncPortalMode(portal?.id);
   const config = builderConfig();
-  const service = SERVICES.find(({ id }) => id === config.serviceId);
+  const service = portal ?? SERVICES.find(({ id }) => id === config.serviceId);
   const design = DESIGNS.find(({ id }) => id === config.design);
   const pack = PACKS.find(({ id }) => id === config.packId);
   const membership = MEMBERSHIPS.find(({ id }) => id === config.membershipId);
   const currencyText = copy.currencies[service?.currency] ?? '—';
-  setText('#estimate-currency', currencyText);
   setText('#budget-currency', currencyText);
-  show('[data-membership-note]', Boolean(membership));
+  show('[data-membership-note]', Boolean(membership && !portal));
+  show('[data-portal-note]', Boolean(portal));
+  show('[data-portal-savings-label]', Boolean(portal));
+  show('[data-regular-savings-label]', !portal);
 
   try {
     const quote = estimateBreakdown(config);
     const { amount, currency } = quote;
-    setText('#estimate-total', (Number.isInteger(amount) ? money : fractionalMoney).format(amount));
+    setText('#estimate-total', amount === null ? copy.onRequest : (Number.isInteger(amount) ? money : fractionalMoney).format(amount));
+    setText('#estimate-currency', amount === null ? '' : currencyText);
     showSavings(quote);
     if (!telegramLink) return;
 
@@ -305,14 +326,17 @@ function updateEstimator() {
       design: design.label[lang],
       pages: config.pages,
       features: FEATURES.filter(({ id }) => config.features.includes(id)).map(({ label }) => label[lang]).join(', '),
-      price: formatPrice({ amount, currency }, lang),
+      price: amount === null ? copy.portalPricePending : formatPrice({ amount, currency }, lang),
       budget: budget > 0 && fields.budget.validity.valid ? formatPrice({ amount: budget, currency }, lang) : '',
       pack,
       membership,
+      portal,
+      reference: config.marketEstimate && formatPrice({ amount: config.marketEstimate, currency }, lang),
     });
     telegramLink.href = `${directTelegramUrl}?text=${encodeURIComponent(draft)}`;
   } catch {
     setText('#estimate-total', '—');
+    setText('#estimate-currency', portal ? '' : currencyText);
     showSavings();
     if (telegramLink) telegramLink.href = directTelegramUrl;
   }
@@ -335,15 +359,46 @@ function selectPack(pack) {
   show('[data-pack-scope]', Boolean(pack));
 }
 
+function syncPortalMode(portalId) {
+  const isPortal = Boolean(portalId);
+  if (portalId !== selectedPortalId) {
+    if (marketEstimateField) marketEstimateField.value = '';
+    selectedPortalId = portalId;
+  }
+  if (packField) {
+    if (isPortal && packField.value) selectPack();
+    packField.disabled = isPortal;
+  }
+  if (portalFields) {
+    portalFields.disabled = !isPortal;
+    portalFields.hidden = !isPortal;
+  }
+  if (portalMembershipOption) {
+    portalMembershipOption.disabled = !isPortal;
+    portalMembershipOption.hidden = !isPortal;
+  }
+  if (!membershipField || !portalMembership) return;
+
+  membershipField.disabled = isPortal;
+  membershipField.setAttribute('aria-describedby', isPortal ? 'portal-estimate-note' : 'membership-estimate-note');
+  if (isPortal && membershipField.value !== portalMembership.id) {
+    regularMembershipId = membershipField.value;
+    membershipField.value = portalMembership.id;
+  } else if (!isPortal && membershipField.value === portalMembership.id) {
+    membershipField.value = regularMembershipId;
+  }
+}
+
 function pickService(serviceId) {
-  const service = SERVICES.find(({ id }) => id === serviceId);
+  const portal = portalService(serviceId);
+  const service = portal ?? SERVICES.find(({ id }) => id === serviceId);
   if (!service || !fields) return false;
   if (packField?.value) {
     selectPack();
     fillConfiguration({ ...DEFAULT_ORDER, serviceId, pages: service.pages });
   } else {
     fields.serviceId.value = serviceId;
-    fields.pages.value = service.pages;
+    if (!portal || portal.id !== selectedPortalId) fields.pages.value = service.pages;
   }
   updateEstimator();
   return true;
@@ -369,11 +424,21 @@ for (const button of selectAll('[data-pick-pack]')) {
   });
 }
 
+for (const button of selectAll('[data-pick-portal]')) {
+  button.addEventListener('click', (event) => {
+    if (pickService(button.dataset.pickPortal)) {
+      event.preventDefault();
+      navigateTo('#order', fields.serviceId);
+    }
+  });
+}
+
 for (const button of selectAll('[data-pick-membership]')) {
   button.addEventListener('click', (event) => {
     const membership = MEMBERSHIPS.find(({ id }) => id === button.dataset.pickMembership);
-    if (!membershipField || !membership) return;
+    if (!membershipField || !membership || membership.portalOnly) return;
     event.preventDefault();
+    if (portalService(fields.serviceId.value)) fillConfiguration(DEFAULT_ORDER);
     membershipField.value = membership.id;
     updateEstimator();
     navigateTo('#order', membershipField);
@@ -415,7 +480,7 @@ if (orderForm) {
     }
     updateEstimator();
   });
-  selectPack(PACKS.find(({ id }) => id === packField?.value));
+  if (!portalService(fields.serviceId.value)) selectPack(PACKS.find(({ id }) => id === packField?.value));
   updateEstimator();
 
   orderForm.addEventListener('submit', async (event) => {

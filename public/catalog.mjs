@@ -75,6 +75,33 @@ export const SERVICES = [
   },
 ];
 
+export const PORTALS = [
+  {
+    id: 'small-portal', currency: 'UAH', icon: 'globe', pages: 5,
+    name: { uk: 'Малий портал', en: 'Small portal' },
+    description: {
+      uk: 'Для невеликої організації, якій потрібні кілька розділів із публічною інформацією.',
+      en: 'For a small organization that needs a few sections for public information.',
+    },
+  },
+  {
+    id: 'medium-portal', currency: 'UAH', icon: 'building', pages: 10,
+    name: { uk: 'Середній портал', en: 'Medium portal' },
+    description: {
+      uk: 'Для організацій із кількома напрямами роботи, категоріями матеріалів і регулярними публікаціями.',
+      en: 'For organizations with several departments, content categories, and regular publications.',
+    },
+  },
+  {
+    id: 'large-portal', currency: 'UAH', icon: 'layers', pages: 20,
+    name: { uk: 'Великий портал', en: 'Large portal' },
+    description: {
+      uk: 'Для проєктів із розгалуженою структурою, кількома групами користувачів і складними інтеграціями.',
+      en: 'For projects with several user groups, complex site structures, and integrations.',
+    },
+  },
+];
+
 export const DESIGNS = [
   { id: 'standard', label: { uk: 'Стандартний дизайн', en: 'Standard design' }, percent: 0 },
   { id: 'premium', label: { uk: 'Преміальний дизайн', en: 'Premium design' }, percent: 25 },
@@ -103,6 +130,7 @@ export const PACKS = [
 export const MEMBERSHIPS = [
   { id: 'plus', name: 'AFAL Plus', monthly: 15, annual: 99, discount: 5 },
   { id: 'pro', name: 'AFAL Pro', monthly: 100, annual: 950, discount: 20 },
+  { id: 'portal', name: 'AFAL Portal', monthly: 45, annual: 300, discount: 50, portalOnly: true },
 ];
 
 export const DEFAULT_ORDER = {
@@ -115,10 +143,13 @@ export const DEFAULT_ORDER = {
 export const EXTRA_PAGE = { USD: 12, UAH: 1000 };
 export const MAX_PAGES = 50;
 export const MAX_CONSULT_LENGTH = 2000;
+export const MIN_MARKET_ESTIMATE = 1;
+export const MAX_MARKET_ESTIMATE = 100_000_000;
 
 export function estimateBreakdown(config) {
-  const { serviceId, design, pages, features, packId = '', membershipId = '' } = config ?? {};
-  const service = SERVICES.find(({ id }) => id === serviceId);
+  const { serviceId, design, pages, features, packId = '', membershipId = '', marketEstimate } = config ?? {};
+  const portal = PORTALS.find(({ id }) => id === serviceId);
+  const service = portal ?? SERVICES.find(({ id }) => id === serviceId);
   const designOption = DESIGNS.find(({ id }) => id === design);
   const validFeatures = Array.isArray(features)
     && features.length <= FEATURES.length
@@ -133,6 +164,23 @@ export function estimateBreakdown(config) {
   if ((packId !== '' && !pack) || (membershipId !== '' && !membership)) {
     throw new RangeError('Invalid pack or membership');
   }
+
+  if (portal) {
+    if (pack || !membership?.portalOnly) throw new RangeError('Portal order requires AFAL Portal');
+    if (marketEstimate === undefined) {
+      return { amount: null, currency: portal.currency, subtotal: null, packSavings: 0, membershipSavings: 0 };
+    }
+    if (!Number.isFinite(marketEstimate) || marketEstimate < MIN_MARKET_ESTIMATE || marketEstimate > MAX_MARKET_ESTIMATE
+      || Math.round(marketEstimate * 100) / 100 !== marketEstimate) {
+      throw new RangeError('Market estimate must be an amount in UAH with at most two decimal places');
+    }
+    return discountedEstimate(marketEstimate, portal.currency, 0, membership.discount);
+  }
+
+  if (marketEstimate !== undefined || membership?.portalOnly) {
+    throw new RangeError('Market estimate and AFAL Portal apply only to portal orders');
+  }
+
   if (pack) {
     const included = pack.config;
     if (included.serviceId !== serviceId || included.design !== design || included.pages !== pages
@@ -150,9 +198,13 @@ export function estimateBreakdown(config) {
     0,
   );
   const subtotal = Math.round(designSubtotal) + extraFeatures;
-  const subtotalCents = subtotal * 100;
-  const afterPackCents = subtotalCents * (100 - (pack?.discount ?? 0)) / 100;
-  const totalCents = Math.round(afterPackCents * (100 - (membership?.discount ?? 0)) / 100);
+  return discountedEstimate(subtotal, currency, pack?.discount ?? 0, membership?.discount ?? 0);
+}
+
+function discountedEstimate(subtotal, currency, packDiscount, membershipDiscount) {
+  const subtotalCents = Math.round(subtotal * 100);
+  const afterPackCents = Math.round(subtotalCents * (100 - packDiscount) / 100);
+  const totalCents = Math.round(afterPackCents * (100 - membershipDiscount) / 100);
   return {
     amount: totalCents / 100,
     currency,
