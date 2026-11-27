@@ -4,8 +4,9 @@ import { once } from 'node:events';
 import { mkdtempSync, rmdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { DatabaseSync } from 'node:sqlite';
 import test from 'node:test';
-import { DEFAULT_ORDER } from '../public/catalog.mjs';
+import { DEFAULT_ORDER, PACKS } from '../public/catalog.mjs';
 import { createAfalServer } from '../server/server.mjs';
 
 const adminToken = 'mock-administrator-credential';
@@ -49,13 +50,18 @@ async function start(t, env = {}, fetcher) {
 const idempotency = () => ({ 'Idempotency-Key': randomUUID() });
 const adminHeaders = { Authorization: 'Bearer ' + adminToken };
 
-test('creates and safely replays orders and persists tracking state across restarts', async (t) => {
+function temporaryDatabase(t) {
   const directory = mkdtempSync(join(tmpdir(), 'afal-api-'));
   const path = join(directory, 'orders.sqlite');
   t.after(() => {
     for (const suffix of ['', '-wal', '-shm']) rmSync(path + suffix, { force: true });
     rmdirSync(directory);
   });
+  return path;
+}
+
+test('creates and safely replays orders and preserves tracking state when upgrading a legacy database', async (t) => {
+  const path = temporaryDatabase(t);
   const env = { AFAL_DB_PATH: path, AFAL_ADMIN_TOKEN: adminToken };
   const first = await start(t, env);
   const headers = idempotency();
@@ -79,6 +85,14 @@ test('creates and safely replays orders and persists tracking state across resta
   assert.equal((await first.call(adminPath, { ...update, headers: adminHeaders })).data.status, 'in-progress');
   await first.stop();
 
+  const legacy = new DatabaseSync(path);
+  try {
+    legacy.exec('ALTER TABLE orders DROP COLUMN quoted_fraction');
+    assert.equal(legacy.prepare('SELECT request_json FROM orders WHERE code = ?').get(code).request_json, JSON.stringify(order));
+  } finally {
+    legacy.close();
+  }
+
   const second = await start(t, env);
   try {
     const tracked = await second.call('/api/status', { body: { code: code.toLowerCase() } });
@@ -86,6 +100,58 @@ test('creates and safely replays orders and persists tracking state across resta
     assert.equal(tracked.data.status, 'in-progress');
     assert.deepEqual(Object.keys(tracked.data).sort(), ['createdAt', 'notification', 'status', 'updatedAt']);
     assert.equal((await second.call('/api/status', { body: { code: 'AFAL-' + 'F'.repeat(32) } })).response.status, 404);
+    const migrated = await second.call('/api/orders', { body: { ...order, packId: '', membershipId: '' }, headers });
+    assert.equal(migrated.response.status, 200);
+    assert.equal(migrated.data.code, code);
+  } finally {
+    await second.stop();
+  }
+});
+
+test('validates package selections and sends the durable, conditional membership quote to Telegram', async (t) => {
+  const path = temporaryDatabase(t);
+  const env = { AFAL_DB_PATH: path, AFAL_ADMIN_TOKEN: adminToken };
+  const pack = PACKS.find(({ id }) => id === 'start-pack');
+  const body = { ...order, ...pack.config, packId: pack.id, membershipId: 'plus', quotedAmount: 1 };
+  const headers = idempotency();
+  const first = await start(t, env);
+  let code;
+  try {
+    for (const invalid of [{ packId: 'unknown' }, { membershipId: 'unknown' }, { pages: 2 }, { features: ['booking'] }]) {
+      const rejected = await first.call('/api/orders', { body: { ...body, ...invalid }, headers });
+      assert.equal(rejected.response.status, 400);
+      assert.equal(rejected.data.error, 'invalid-order');
+    }
+    const created = await first.call('/api/orders', { body, headers });
+    assert.equal(created.response.status, 201);
+    assert.equal(created.data.notification, 'unconfigured');
+    code = created.data.code;
+  } finally {
+    await first.stop();
+  }
+
+  const notifications = [];
+  const second = await start(t, { ...env, TELEGRAM_BOT_TOKEN: 'mock-token', TELEGRAM_CHAT_ID: '123' }, async (_, options) => {
+    notifications.push(JSON.parse(options.body));
+    return Response.json({ ok: true });
+  });
+  try {
+    const replay = await second.call('/api/orders', {
+      body: { ...body, features: [...body.features].reverse() }, headers,
+    });
+    assert.equal(replay.response.status, 200);
+    assert.equal(replay.data.code, code);
+    const changed = await second.call('/api/orders', { body: { ...body, membershipId: 'pro' }, headers });
+    assert.equal(changed.response.status, 409);
+
+    const retried = await second.call('/api/admin/orders/' + code, {
+      method: 'PATCH', headers: adminHeaders, body: { retryTelegram: true },
+    });
+    assert.equal(retried.data.notification, 'sent');
+    assert.equal(notifications.length, 1);
+    assert.match(notifications[0].text, /Пакет: Start Pack \(−25%\)/);
+    assert.match(notifications[0].text, /AFAL Plus \(−5%\).*вручну/);
+    assert.match(notifications[0].text, /за умови підтвердження підписки: \$71,25/);
   } finally {
     await second.stop();
   }

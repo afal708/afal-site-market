@@ -205,6 +205,35 @@ h3 { margin-bottom: .55rem; letter-spacing: -.025em; }
 .tier-card th { text-align: left; font-weight: 580; }
 .tier-card td { text-align: right; padding-left: .8rem; white-space: nowrap; color: var(--accent); font-weight: 690; }
 .pricing-goal { margin: .95rem 0 0; max-width: 80ch; font-size: .94rem; }
+.pricing-links { margin: -.35rem 0 1.15rem; }
+.pricing-group { margin-top: clamp(2.4rem,5vw,4rem); }
+.pricing-group .section-heading { margin-bottom: 1rem; }
+.pricing-group h3 { font-size: clamp(1.65rem,3.2vw,2.4rem); }
+.offer-card {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  gap: 1rem;
+  padding: clamp(1.1rem,2.7vw,1.75rem);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.offer-card .button { margin-top: auto; }
+.offer-header { display: flex; width: 100%; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .55rem; }
+.offer-header h4 { font-size: 1.38rem; line-height: 1.2; margin: 0; letter-spacing: -.025em; }
+.offer-saving { padding: .2rem .6rem; border-radius: .4rem; background: var(--accent-soft); color: var(--accent); font-size: .87rem; font-weight: 700; }
+.offer-price { display: flex; align-items: baseline; flex-wrap: wrap; gap: .6rem; }
+.offer-price strong { color: var(--accent); font-size: clamp(1.8rem,4vw,2.7rem); letter-spacing: -.04em; }
+.offer-price del { color: var(--subtle); }
+.pack-services { display: grid; gap: .46rem; padding: 0; margin: -.25rem 0 .15rem; list-style: none; color: var(--muted); }
+.pack-services li { display: flex; gap: .55rem; align-items: center; }
+.pack-services .icon { color: var(--accent); }
+.billing-options { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); width: 100%; gap: .65rem; }
+.billing-option { display: grid; grid-template-rows: auto 1fr auto; align-items: start; gap: .18rem; min-width: 0; padding: clamp(.6rem,1.8vw,1rem); background: var(--input); border: 1px solid var(--line); border-radius: 9px; }
+.billing-option > span { color: var(--muted); font-size: .9rem; }
+.billing-option > strong { color: var(--accent); font-size: clamp(1.6rem,3vw,2.1rem); letter-spacing: -.05em; }
+.billing-option .button { width: fit-content; margin-top: .36rem; }
 
 .consult-panel, .contact-panel { display: grid; grid-template-columns: 1fr 1fr; align-items: start; gap: clamp(1.3rem,5vw,4rem); padding: clamp(1.3rem, 5vw, 3.25rem); background: linear-gradient(128deg, var(--accent-soft), var(--surface) 66%); border: 1px solid var(--line); border-radius: var(--radius); }
 .consult-panel h2 { font-size: clamp(2rem, 4.4vw, 3.3rem); }
@@ -228,6 +257,7 @@ h3 { margin-bottom: .55rem; letter-spacing: -.025em; }
 .builder legend { margin-bottom: .65rem; padding: 0; font-size: 1.15rem; font-weight: 700; letter-spacing: -.02em; }
 .field-grid, .checks { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: .75rem; }
 .field-grid .full { grid-column: 1/-1; }
+.builder-note { margin: 0; color: var(--muted); }
 .subtle { color: var(--subtle); font-weight: 450; }
 .input-suffix { position: relative; }
 .input-suffix input { padding-right: 4.4rem; }
@@ -241,6 +271,10 @@ h3 { margin-bottom: .55rem; letter-spacing: -.025em; }
 .estimate-box { position: sticky; top: 95px; background: var(--accent-soft); border-color: var(--line); }
 .estimate-box .total { margin-bottom: .55rem; color: var(--accent); line-height: 1.15; }
 .total strong { font-size: clamp(2.4rem,5.7vw,4.55rem); letter-spacing: -.085em; font-weight: 700; }
+.savings { margin: .75rem 0; font-size: .9rem; }
+.savings div { display: flex; justify-content: space-between; gap: .5rem; padding: .44rem 0; border-top: 1px solid var(--line); }
+.savings dt { color: var(--muted); }
+.savings dd { margin: 0; color: var(--accent); font-weight: 700; white-space: nowrap; }
 .estimate-actions { display: grid; gap: .55rem; }
 .estimate-box code { display: block; padding: .3rem 0 .8rem; user-select: text; }
 .tracking { margin-top: 1rem; display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 1rem; }

@@ -4,8 +4,12 @@ import {
   consult,
   DEFAULT_ORDER,
   estimate,
+  estimateBreakdown,
+  formatPrice,
   MAX_CONSULT_LENGTH,
   MAX_PAGES,
+  MEMBERSHIPS,
+  PACKS,
   SERVICES,
 } from '../public/catalog.mjs';
 
@@ -43,6 +47,48 @@ test('estimates cover pages, design, and features in the chosen service currency
     estimate({ ...DEFAULT_ORDER, serviceId: 'platform', pages: 2 }),
     { amount: 45000, currency: 'UAH' },
   );
+});
+
+test('package prices are 25% below the same services ordered separately', () => {
+  const expected = [
+    { amount: 75, currency: 'USD', subtotal: 100, packSavings: 25, membershipSavings: 0 },
+    { amount: 21000, currency: 'UAH', subtotal: 28000, packSavings: 7000, membershipSavings: 0 },
+  ];
+  for (const [index, pack] of PACKS.entries()) {
+    assert.equal(estimate(pack.config).amount, expected[index].subtotal);
+    assert.deepEqual(estimateBreakdown({ ...pack.config, packId: pack.id }), expected[index]);
+  }
+});
+
+test('memberships apply once to service work and stack after the pack discount', () => {
+  assert.deepEqual(
+    MEMBERSHIPS.map(({ id, monthly, annual, discount }) => [id, monthly, annual, discount]),
+    [['plus', 15, 99, 5], ['pro', 100, 950, 20]],
+  );
+  assert.deepEqual(estimate({ ...DEFAULT_ORDER, membershipId: 'plus' }), { amount: 38, currency: 'USD' });
+  const start = PACKS[0];
+  const quote = estimateBreakdown({ ...start.config, packId: start.id, membershipId: 'plus' });
+  assert.deepEqual(quote, { amount: 71.25, currency: 'USD', subtotal: 100, packSavings: 25, membershipSavings: 3.75 });
+  assert.equal(formatPrice(quote, 'en'), '$71.25');
+  assert.equal(formatPrice(quote, 'uk'), '$71,25');
+  const pro = PACKS[1];
+  assert.deepEqual(
+    estimateBreakdown({ ...pro.config, packId: pro.id, membershipId: 'pro' }),
+    { amount: 16800, currency: 'UAH', subtotal: 28000, packSavings: 7000, membershipSavings: 4200 },
+  );
+});
+
+test('package contents must match the advertised services, regardless of feature order', () => {
+  const pack = PACKS[0];
+  const order = { ...pack.config, packId: pack.id };
+  assert.deepEqual(estimate({ ...order, features: [...pack.config.features].reverse() }), estimate(order));
+  for (const change of [
+    { packId: 'unknown' }, { membershipId: 'unknown' }, { membershipId: null }, { design: 'premium' },
+    { pages: 2 }, { features: ['multilingual'] }, { features: ['multilingual', 'booking', 'cms'] },
+  ]) {
+    assert.throws(() => estimate({ ...order, ...change }), RangeError);
+  }
+  assert.deepEqual(estimate({ ...DEFAULT_ORDER, packId: '', membershipId: '' }), estimate(DEFAULT_ORDER));
 });
 
 test('invalid and ambiguous order configuration fails instead of producing a price', () => {

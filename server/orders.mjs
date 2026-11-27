@@ -22,8 +22,8 @@ function text(value, max, min = 0, multiline = false) {
 export function normalizeOrder(raw) {
   if (raw.consent !== true || !['uk', 'en'].includes(raw.lang)) throw new RangeError('Invalid consent or language');
 
-  const { serviceId, design, pages, features } = raw;
-  estimate({ serviceId, design, pages, features });
+  const { serviceId, design, pages, features, packId, membershipId } = raw;
+  estimate({ serviceId, design, pages, features, packId, membershipId });
 
   let budget = raw.budget ?? null;
   if (typeof budget === 'string') {
@@ -39,6 +39,8 @@ export function normalizeOrder(raw) {
     details: text(raw.details ?? '', 1600, 0, true),
     consent: true,
     lang: raw.lang,
+    ...(packId ? { packId } : {}),
+    ...(membershipId ? { membershipId } : {}),
   };
 }
 
@@ -73,6 +75,7 @@ export function createOrderStore(databasePath) {
       request_hash TEXT NOT NULL,
       request_json TEXT NOT NULL,
       quoted_amount INTEGER NOT NULL,
+      quoted_fraction INTEGER NOT NULL DEFAULT 0 CHECK (quoted_fraction BETWEEN 0 AND 99),
       quoted_currency TEXT NOT NULL,
       status TEXT NOT NULL DEFAULT 'received',
       notification TEXT NOT NULL,
@@ -85,11 +88,23 @@ export function createOrderStore(databasePath) {
     CREATE INDEX IF NOT EXISTS order_outbox ON orders (notification, next_attempt_at);
   `);
 
+  db.exec('BEGIN IMMEDIATE');
+  try {
+    if (!db.prepare('PRAGMA table_info(orders)').all().some(({ name }) => name === 'quoted_fraction')) {
+      db.exec('ALTER TABLE orders ADD COLUMN quoted_fraction INTEGER NOT NULL DEFAULT 0 CHECK (quoted_fraction BETWEEN 0 AND 99)');
+    }
+    db.exec('COMMIT');
+  } catch (error) {
+    db.exec('ROLLBACK');
+    db.close();
+    throw error;
+  }
+
   const insert = db.prepare(`
     INSERT INTO orders (
-      code, idempotency_key, request_hash, request_json, quoted_amount, quoted_currency,
+      code, idempotency_key, request_hash, request_json, quoted_amount, quoted_fraction, quoted_currency,
       notification, next_attempt_at, created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(idempotency_key) DO NOTHING
   `);
   const byKey = db.prepare('SELECT * FROM orders WHERE idempotency_key = ?');
@@ -120,7 +135,11 @@ export function createOrderStore(databasePath) {
       const code = `AFAL-${randomBytes(16).toString('hex').toUpperCase()}`;
       const now = Date.now();
       const { amount, currency } = estimate(order);
-      const result = insert.run(code, key, hash, serialized, amount, currency, telegram ? 'pending' : 'unconfigured', now, now, now);
+      const quote = Math.round(amount * 100);
+      const result = insert.run(
+        code, key, hash, serialized, Math.floor(quote / 100), quote % 100, currency,
+        telegram ? 'pending' : 'unconfigured', now, now, now,
+      );
       const row = byKey.get(key);
       return { row, isNew: result.changes === 1, matches: row.request_hash === hash };
     },

@@ -1,7 +1,10 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
-import { LANGS, SERVICES, DESIGNS, FEATURES, DEFAULT_ORDER, MAX_CONSULT_LENGTH, estimate } from '../public/catalog.mjs';
+import {
+  LANGS, SERVICES, DESIGNS, FEATURES, PACKS, MEMBERSHIPS, DEFAULT_ORDER, MAX_CONSULT_LENGTH,
+  estimate, estimateBreakdown, formatPrice,
+} from '../public/catalog.mjs';
 import { copy } from './content.mjs';
 
 const canonical = new URL(process.env.AFAL_SITE_URL ?? 'https://afal708.github.io/afal-site-market/');
@@ -36,8 +39,7 @@ const icon = (name, css = '') => `<svg class="icon ${css}" viewBox="0 0 24 24" f
 const brand = `<span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 30 30" fill="none"><path d="M5 24 14 6h4l8 18h-5l-5-12-6 12H5Z" fill="currentColor"/><path d="M14 19h4l2 5h-8l2-5Z" fill="currentColor"/></svg></span><span class="brand-name">AFAL<span>Site Market</span></span>`;
 
 function price(amount, currency, lang) {
-  const numeral = new Intl.NumberFormat(lang === 'uk' ? 'uk-UA' : 'en-US').format(amount);
-  return currency === 'USD' ? `$${numeral}` : `${numeral} ${lang === 'uk' ? 'грн' : 'UAH'}`;
+  return formatPrice({ amount, currency }, lang);
 }
 
 function heading(label, title, intro) {
@@ -76,6 +78,38 @@ function render(lang) {
       <header><h3>${title}</h3><p>${intro}</p></header>
       <table aria-label="${title}"><tbody>${SERVICES.filter(service => service.tier === tier).map(service => `<tr><th scope="row">${service.name[lang]}</th><td><small>${t.from}</small> ${price(service.amount, service.currency, lang)}</td></tr>`).join('')}</tbody></table>
     </article>`;
+  const packCards = PACKS.map(pack => {
+    const { serviceId, design, pages, features } = pack.config;
+    const service = SERVICES.find(item => item.id === serviceId);
+    const designLabel = DESIGNS.find(item => item.id === design).label[lang];
+    const pagesLabel = uk ? (pages === 1 ? '1 сторінка' : `${pages} сторінок`) : `${pages} ${pages === 1 ? 'page' : 'pages'}`;
+    const items = features.map(id => FEATURES.find(feature => feature.id === id).label[lang]);
+    const { subtotal, amount, currency } = estimateBreakdown({ ...pack.config, packId: pack.id });
+    return `<article class="offer-card">
+      <header class="offer-header"><h4>${pack.name}</h4><span class="offer-saving">−${pack.discount}%</span></header>
+      <div class="offer-price"><strong>${price(amount, currency, lang)}</strong><del>${price(subtotal, currency, lang)}</del></div>
+      <ul class="pack-services">
+        ${[`${service.name[lang]} · ${pagesLabel}`, designLabel, ...items].map(item => `<li>${icon('check')}${item}</li>`).join('')}
+      </ul>
+      <a href="#order" class="button primary" data-pick-pack="${pack.id}">${t.choosePack}<span class="sr-only"> · ${pack.name}</span></a>
+    </article>`;
+  }).join('');
+  const membershipCards = MEMBERSHIPS.map(plan => {
+    const rate = (period, label) => {
+      const amount = price(plan[period], 'USD', lang);
+      const message = uk ? `Вітаю! Хочу оформити ${plan.name} (${amount} ${label.toLowerCase()}).` : `Hello! I’d like to join ${plan.name} (${amount} ${label.toLowerCase()}).`;
+      const draft = `${telegram}?text=${encodeURIComponent(message)}`;
+      return `<div class="billing-option">
+        <span>${label}</span><strong>${amount}</strong>
+        <a href="${esc(draft)}" class="button secondary small" target="_blank" rel="noopener noreferrer" data-membership-join="${plan.id}" data-membership-period="${period}">${t.activate}<span class="sr-only"> · ${plan.name}, ${label}</span></a>
+      </div>`;
+    };
+    return `<article class="offer-card membership-card">
+      <header class="offer-header"><h4>${plan.name}</h4><span class="offer-saving">−${plan.discount}% ${t.membershipDiscount}</span></header>
+      <div class="billing-options">${rate('monthly', t.month)}${rate('annual', t.year)}</div>
+      <a href="#order" class="button secondary" data-pick-membership="${plan.id}">${t.tryMembership}<span class="sr-only"> · ${plan.name}</span></a>
+    </article>`;
+  }).join('');
   const schema = JSON.stringify({
     '@context': 'https://schema.org', '@type': 'WebSite', name: 'AFAL Site Market',
     url: canonicalPage, inLanguage: lang, description: t.description,
@@ -158,8 +192,18 @@ function render(lang) {
     </section>
     <section class="section wrap" id="pricing">
       ${heading(t.pricing, t.pricingTitle, t.pricingIntro)}
+      <div class="pricing-links actions"><a href="#packs" class="button secondary small">${t.packs}</a><a href="#memberships" class="button secondary small">${t.memberships}</a></div>
       <div class="tier-grid">${tierPrice('budget',t.pricingBudget,t.pricingBudgetText)} ${tierPrice('pro',t.pricingPro,t.pricingProText)}</div>
       <p class="pricing-goal">${t.pricingGoal}</p>
+      <section class="pricing-group" id="packs" aria-labelledby="packs-title">
+        <div class="section-heading"><h3 id="packs-title">${t.packs}</h3><p>${t.packsIntro}</p></div>
+        <div class="tier-grid">${packCards}</div>
+      </section>
+      <section class="pricing-group" id="memberships" aria-labelledby="memberships-title">
+        <div class="section-heading"><h3 id="memberships-title">${t.memberships}</h3><p>${t.membershipIntro}</p></div>
+        <div class="tier-grid">${membershipCards}</div>
+        <p class="pricing-goal">${t.membershipNote}</p>
+      </section>
     </section>
     <section class="section wrap" id="consult">
       <div class="consult-panel">
@@ -185,6 +229,9 @@ function render(lang) {
       <form class="builder" id="order-form" method="post">
         <div class="builder-fields">
           <fieldset><legend>${t.configuration}</legend><div class="field-grid">
+            <label class="field">${t.orderPack}<select name="packId" aria-describedby="pack-scope"><option value="">${t.noPack}</option>${PACKS.map(pack => `<option value="${pack.id}">${pack.name} · −${pack.discount}%</option>`).join('')}</select></label>
+            <label class="field">${t.orderMembership}<select name="membershipId" aria-describedby="membership-estimate-note"><option value="">${t.noMembership}</option>${MEMBERSHIPS.map(plan => `<option value="${plan.id}">${plan.name} · −${plan.discount}%</option>`).join('')}</select></label>
+            <p class="form-note full builder-note" id="pack-scope" data-pack-scope hidden>${t.packDetails}</p>
             <label class="field">${t.service}<select name="serviceId" required>${SERVICES.map(service => `<option value="${service.id}"${service.id === DEFAULT_ORDER.serviceId ? ' selected' : ''}>${service.name[lang]}</option>`).join('')}</select></label>
             <label class="field">${t.design}<select name="design" required>${DESIGNS.map(design => `<option value="${design.id}"${design.id === DEFAULT_ORDER.design ? ' selected' : ''}>${design.label[lang]}</option>`).join('')}</select></label>
             <label class="field">${t.pages}<input name="pages" type="number" min="1" max="50" value="${DEFAULT_ORDER.pages}" required></label>
@@ -200,6 +247,11 @@ function render(lang) {
         <aside class="estimate-box">
           <p class="eyebrow">${t.estimate}</p>
           <p class="total" aria-live="polite"><strong id="estimate-total">${initial.amount}</strong> <span id="estimate-currency">${currency}</span></p>
+          <dl class="savings" data-estimate-discounts hidden>
+            <div data-pack-savings hidden><dt>${t.packageSavings}</dt><dd data-pack-savings-amount></dd></div>
+            <div data-membership-savings hidden><dt>${t.membershipSavings}</dt><dd data-membership-savings-amount></dd></div>
+          </dl>
+          <p class="form-note" id="membership-estimate-note" data-membership-note hidden>${t.membershipNote}</p>
           <p>${t.estimateNote}</p>
           <div class="estimate-actions"><button type="submit" class="button primary" data-order-submit><span data-order-submit-label>${t.submit}</span></button>${contactLink('secondary','data-telegram-fallback')}</div>
           <p class="feedback" data-order-feedback role="status"></p>

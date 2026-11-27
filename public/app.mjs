@@ -1,10 +1,14 @@
-import { DESIGNS, FEATURES, MAX_CONSULT_LENGTH, SERVICES, consult, estimate, formatPrice } from './catalog.mjs';
+import {
+  DEFAULT_ORDER, DESIGNS, FEATURES, MAX_CONSULT_LENGTH, MEMBERSHIPS, PACKS, SERVICES,
+  consult, estimate, estimateBreakdown, formatPrice,
+} from './catalog.mjs';
 import { API_BASE } from './deployment.mjs';
 
 const root = document.documentElement;
 const lang = root.lang === 'en' ? 'en' : 'uk';
 const locale = lang === 'en' ? 'en-US' : 'uk-UA';
 const money = new Intl.NumberFormat(locale);
+const fractionalMoney = new Intl.NumberFormat(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const dateTime = new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' });
 const select = (selector, scope = document) => scope.querySelector(selector);
 const selectAll = (selector, scope = document) => [...scope.querySelectorAll(selector)];
@@ -46,13 +50,15 @@ const copy = {
       pending: 'Сповіщення в Telegram очікує надсилання.',
       unconfigured: 'Сповіщення в Telegram тимчасово недоступне.',
     },
-    draft({ project, design, pages, features, price, budget }) {
+    draft({ project, design, pages, features, price, budget, pack, membership }) {
       return [
         'Вітаю! Хочу обговорити сайт з AFAL.',
+        pack && `Пакет: ${pack.name} (−${pack.discount}%)`,
         `Тип сайту: ${project}`,
         `Дизайн: ${design}`,
         `Сторінок: ${pages}`,
         features && `Додаткові функції: ${features}`,
+        membership && `Підписка для розрахунку: ${membership.name} (−${membership.discount}% за підтвердженої активної підписки)`,
         `Попередній розрахунок: ${price}`,
         budget && `Бюджет: ${budget}`,
       ].filter(Boolean).join('\n');
@@ -94,13 +100,15 @@ const copy = {
       pending: 'The Telegram notification is pending.',
       unconfigured: 'Telegram notifications are temporarily unavailable.',
     },
-    draft({ project, design, pages, features, price, budget }) {
+    draft({ project, design, pages, features, price, budget, pack, membership }) {
       return [
         'Hi! I’d like to discuss a website with AFAL.',
+        pack && `Package: ${pack.name} (−${pack.discount}%)`,
         `Site type: ${project}`,
         `Design: ${design}`,
         `Pages: ${pages}`,
         features && `Additional features: ${features}`,
+        membership && `Membership for this estimate: ${membership.name} (−${membership.discount}% after active membership is confirmed)`,
         `Initial estimate: ${price}`,
         budget && `Budget: ${budget}`,
       ].filter(Boolean).join('\n');
@@ -116,6 +124,8 @@ const consultForm = select('#consult-form');
 const telegramLink = select('[data-telegram-fallback]');
 const directTelegramUrl = 'https://t.me/artemis393';
 const fields = orderForm?.elements;
+const packField = fields?.namedItem('packId');
+const membershipField = fields?.namedItem('membershipId');
 const featureFields = orderForm ? selectAll('input[name="features"]', orderForm) : [];
 
 function apiDirectory() {
@@ -258,20 +268,35 @@ function builderConfig() {
     design: fields.design.value,
     pages: Number(fields.pages.value),
     features: featureFields.filter((control) => control.checked).map((control) => control.value),
+    ...(packField?.value && { packId: packField.value }),
+    ...(membershipField?.value && { membershipId: membershipField.value }),
   };
+}
+
+function showSavings({ packSavings = 0, membershipSavings = 0, currency } = {}) {
+  show('[data-estimate-discounts]', packSavings > 0 || membershipSavings > 0);
+  show('[data-pack-savings]', packSavings > 0);
+  show('[data-membership-savings]', membershipSavings > 0);
+  if (packSavings) setText('[data-pack-savings-amount]', `−${formatPrice({ amount: packSavings, currency }, lang)}`);
+  if (membershipSavings) setText('[data-membership-savings-amount]', `−${formatPrice({ amount: membershipSavings, currency }, lang)}`);
 }
 
 function updateEstimator() {
   const config = builderConfig();
   const service = SERVICES.find(({ id }) => id === config.serviceId);
   const design = DESIGNS.find(({ id }) => id === config.design);
+  const pack = PACKS.find(({ id }) => id === config.packId);
+  const membership = MEMBERSHIPS.find(({ id }) => id === config.membershipId);
   const currencyText = copy.currencies[service?.currency] ?? '—';
   setText('#estimate-currency', currencyText);
   setText('#budget-currency', currencyText);
+  show('[data-membership-note]', Boolean(membership));
 
   try {
-    const { amount, currency } = estimate(config);
-    setText('#estimate-total', money.format(amount));
+    const quote = estimateBreakdown(config);
+    const { amount, currency } = quote;
+    setText('#estimate-total', (Number.isInteger(amount) ? money : fractionalMoney).format(amount));
+    showSavings(quote);
     if (!telegramLink) return;
 
     const budget = Number(fields.budget.value);
@@ -282,19 +307,44 @@ function updateEstimator() {
       features: FEATURES.filter(({ id }) => config.features.includes(id)).map(({ label }) => label[lang]).join(', '),
       price: formatPrice({ amount, currency }, lang),
       budget: budget > 0 && fields.budget.validity.valid ? formatPrice({ amount: budget, currency }, lang) : '',
+      pack,
+      membership,
     });
     telegramLink.href = `${directTelegramUrl}?text=${encodeURIComponent(draft)}`;
   } catch {
     setText('#estimate-total', '—');
+    showSavings();
     if (telegramLink) telegramLink.href = directTelegramUrl;
   }
+}
+
+function fillConfiguration({ serviceId, design, pages, features }) {
+  fields.serviceId.value = serviceId;
+  fields.design.value = design;
+  fields.pages.value = pages;
+  for (const feature of featureFields) feature.checked = features.includes(feature.value);
+}
+
+function selectPack(pack) {
+  if (!packField) return;
+  packField.value = pack?.id ?? '';
+  if (pack) fillConfiguration(pack.config);
+  for (const field of [fields.serviceId, fields.design, fields.pages, ...featureFields]) {
+    field.disabled = Boolean(pack);
+  }
+  show('[data-pack-scope]', Boolean(pack));
 }
 
 function pickService(serviceId) {
   const service = SERVICES.find(({ id }) => id === serviceId);
   if (!service || !fields) return false;
-  fields.serviceId.value = serviceId;
-  fields.pages.value = service.pages;
+  if (packField?.value) {
+    selectPack();
+    fillConfiguration({ ...DEFAULT_ORDER, serviceId, pages: service.pages });
+  } else {
+    fields.serviceId.value = serviceId;
+    fields.pages.value = service.pages;
+  }
   updateEstimator();
   return true;
 }
@@ -305,6 +355,28 @@ for (const button of selectAll('[data-pick-service]')) {
       event.preventDefault();
       navigateTo('#order', fields.serviceId);
     }
+  });
+}
+
+for (const button of selectAll('[data-pick-pack]')) {
+  button.addEventListener('click', (event) => {
+    const pack = PACKS.find(({ id }) => id === button.dataset.pickPack);
+    if (!packField || !pack) return;
+    event.preventDefault();
+    selectPack(pack);
+    updateEstimator();
+    navigateTo('#order', packField);
+  });
+}
+
+for (const button of selectAll('[data-pick-membership]')) {
+  button.addEventListener('click', (event) => {
+    const membership = MEMBERSHIPS.find(({ id }) => id === button.dataset.pickMembership);
+    if (!membershipField || !membership) return;
+    event.preventDefault();
+    membershipField.value = membership.id;
+    updateEstimator();
+    navigateTo('#order', membershipField);
   });
 }
 
@@ -333,9 +405,17 @@ if (orderForm) {
     setText(feedback, copy.staticOrder);
   }
 
-  fields.serviceId.addEventListener('change', () => pickService(fields.serviceId.value));
-  orderForm.addEventListener('input', updateEstimator);
-  orderForm.addEventListener('change', updateEstimator);
+  orderForm.addEventListener('input', (event) => {
+    if (event.target === fields.serviceId) {
+      pickService(fields.serviceId.value);
+      return;
+    }
+    if (event.target === packField) {
+      selectPack(PACKS.find(({ id }) => id === packField.value));
+    }
+    updateEstimator();
+  });
+  selectPack(PACKS.find(({ id }) => id === packField?.value));
   updateEstimator();
 
   orderForm.addEventListener('submit', async (event) => {
@@ -517,10 +597,8 @@ if (consultForm) {
   select('[data-apply-suggestion]')?.addEventListener('click', (event) => {
     if (!suggestion || !fields) return;
     event.preventDefault();
-    fields.serviceId.value = suggestion.serviceId;
-    fields.design.value = suggestion.design;
-    fields.pages.value = suggestion.pages;
-    for (const feature of featureFields) feature.checked = suggestion.features.includes(feature.value);
+    selectPack();
+    fillConfiguration(suggestion);
     updateEstimator();
     navigateTo('#order', fields.serviceId);
   });

@@ -89,6 +89,22 @@ export const FEATURES = [
   { id: 'integrations', label: { uk: 'Інтеграція зі стороннім сервісом', en: 'External service integration' }, usd: 55, uah: 6000 },
 ];
 
+export const PACKS = [
+  {
+    id: 'start-pack', name: 'Start Pack', discount: 25,
+    config: { serviceId: 'business-card', design: 'standard', pages: 1, features: ['multilingual', 'booking'] },
+  },
+  {
+    id: 'pro-pack', name: 'Pro Pack', discount: 25,
+    config: { serviceId: 'corporate', design: 'standard', pages: 5, features: ['cms', 'multilingual', 'integrations'] },
+  },
+];
+
+export const MEMBERSHIPS = [
+  { id: 'plus', name: 'AFAL Plus', monthly: 15, annual: 99, discount: 5 },
+  { id: 'pro', name: 'AFAL Pro', monthly: 100, annual: 950, discount: 20 },
+];
+
 export const DEFAULT_ORDER = {
   serviceId: 'business-card',
   design: 'standard',
@@ -100,8 +116,8 @@ export const EXTRA_PAGE = { USD: 12, UAH: 1000 };
 export const MAX_PAGES = 50;
 export const MAX_CONSULT_LENGTH = 2000;
 
-export function estimate(config) {
-  const { serviceId, design, pages, features } = config ?? {};
+export function estimateBreakdown(config) {
+  const { serviceId, design, pages, features, packId = '', membershipId = '' } = config ?? {};
   const service = SERVICES.find(({ id }) => id === serviceId);
   const designOption = DESIGNS.find(({ id }) => id === design);
   const validFeatures = Array.isArray(features)
@@ -111,6 +127,20 @@ export function estimate(config) {
   if (!service || !designOption || !Number.isInteger(pages) || pages < 1 || pages > MAX_PAGES || !validFeatures) {
     throw new RangeError('Invalid order configuration');
   }
+
+  const pack = PACKS.find(({ id }) => id === packId);
+  const membership = MEMBERSHIPS.find(({ id }) => id === membershipId);
+  if ((packId !== '' && !pack) || (membershipId !== '' && !membership)) {
+    throw new RangeError('Invalid pack or membership');
+  }
+  if (pack) {
+    const included = pack.config;
+    if (included.serviceId !== serviceId || included.design !== design || included.pages !== pages
+      || included.features.length !== features.length || !included.features.every(feature => features.includes(feature))) {
+      throw new RangeError('Order configuration does not match the pack');
+    }
+  }
+
   const { amount, pages: includedPages, currency } = service;
   const extraPages = Math.max(0, pages - includedPages);
   const designSubtotal = (amount + extraPages * EXTRA_PAGE[currency]) * (1 + designOption.percent / 100);
@@ -119,12 +149,28 @@ export function estimate(config) {
     (total, feature) => total + (features.includes(feature.id) ? feature[featureCurrency] : 0),
     0,
   );
-  return { amount: Math.round(designSubtotal) + extraFeatures, currency };
+  const subtotal = Math.round(designSubtotal) + extraFeatures;
+  const subtotalCents = subtotal * 100;
+  const afterPackCents = subtotalCents * (100 - (pack?.discount ?? 0)) / 100;
+  const totalCents = Math.round(afterPackCents * (100 - (membership?.discount ?? 0)) / 100);
+  return {
+    amount: totalCents / 100,
+    currency,
+    subtotal,
+    packSavings: (subtotalCents - afterPackCents) / 100,
+    membershipSavings: (afterPackCents - totalCents) / 100,
+  };
+}
+
+export function estimate(config) {
+  const { amount, currency } = estimateBreakdown(config);
+  return { amount, currency };
 }
 
 export function formatPrice({ amount, currency }, lang = 'uk') {
   const formatter = new Intl.NumberFormat(lang === 'en' ? 'en-US' : 'uk-UA', {
-    maximumFractionDigits: 0,
+    minimumFractionDigits: Number.isInteger(amount) ? 0 : 2,
+    maximumFractionDigits: 2,
   });
   const number = formatter.format(amount);
   return currency === 'USD' ? `$${number}` : `${number} ${lang === 'en' ? 'UAH' : 'грн'}`;
