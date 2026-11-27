@@ -1,139 +1,252 @@
-
-<!DOCTYPE html>
-<html lang="uk">
+<!doctype html>
+<html lang="uk" data-theme="dark">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="AFAL Site Market — замовлення індивідуальних сайтів.">
-<title>AFAL Site Market</title>
-<style>
-*{box-sizing:border-box;scroll-behavior:smooth}
-body{margin:0;font-family:Arial,sans-serif;background:#101225;color:#f4f6ff;line-height:1.6}
-header{text-align:center;padding:55px 18px;background:linear-gradient(135deg,#29245b,#101225)}
-h1{font-size:clamp(30px,6vw,44px);margin:0 0 12px;color:#a99cff}
-header p{color:#d3d7ef}
-main{max-width:1000px;margin:auto;padding:28px 16px}
-h2{text-align:center}
-.products{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px}
-.card{background:#1b203a;border:1px solid #393f66;border-radius:16px;padding:24px 18px;text-align:center;transition:transform .2s,border-color .2s}
-.card:hover{transform:translateY(-4px);border-color:#8171f5}
-.emoji{font-size:46px}
-.btn{display:inline-block;background:#8171f5;color:white;text-decoration:none;border:0;padding:12px 20px;border-radius:10px;font-weight:bold;cursor:pointer;font-size:15px}
-.btn:hover{background:#6958df}
-.card .btn{width:100%;margin-top:12px}
-.secondary{background:#303653}
-.secondary:hover{background:#41496d}
-.panel{background:#1b203a;border:1px solid #393f66;border-radius:16px;padding:25px;margin-top:28px;text-align:center}
-.hidden{display:none}
-.contact{border-color:#4b4486}
-.telegram{background:#229ED9}
-.telegram:hover{background:#168ac2}
-.small{font-size:13px;color:#b7bfdc}
-footer{text-align:center;color:#aeb5d4;padding:25px}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Розробка сайтів на замовлення. Візитки від $40, магазини, корпоративні сайти та ігрові портали. Розрахуйте вартість і підготуйте технічне завдання.">
+  <meta name="theme-color" content="#151310">
+  <title>Сайти на замовлення для бізнесу та ігор | AFAL Site Market</title>
+  <link rel="canonical" href="https://afal708.github.io/afal-site-market/">
+  <link rel="alternate" hreflang="uk" href="https://afal708.github.io/afal-site-market/">
+  <link rel="alternate" hreflang="en" href="https://afal708.github.io/afal-site-market/en/">
+  <link rel="alternate" hreflang="x-default" href="https://afal708.github.io/afal-site-market/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="AFAL Site Market">
+  <meta property="og:title" content="Сайти на замовлення для бізнесу та ігор | AFAL Site Market">
+  <meta property="og:description" content="Розробка сайтів на замовлення. Візитки від $40, магазини, корпоративні сайти та ігрові портали. Розрахуйте вартість і підготуйте технічне завдання.">
+  <meta property="og:url" content="https://afal708.github.io/afal-site-market/">
+  <meta property="og:locale" content="uk_UA">
+  <meta property="og:image" content="https://afal708.github.io/afal-site-market/public/hero.webp">
+  <meta name="twitter:card" content="summary_large_image">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"AFAL Site Market","url":"https://afal708.github.io/afal-site-market/","inLanguage":"uk","description":"Розробка сайтів на замовлення. Візитки від $40, магазини, корпоративні сайти та ігрові портали. Розрахуйте вартість і підготуйте технічне завдання."}</script>
+  <script>(()=>{try{if(localStorage.getItem('afal-theme')==='light')document.documentElement.dataset.theme='light'}catch{}})()</script>
+  <link rel="icon" href="./public/favicon.png" type="image/png">
+  <link rel="stylesheet" href="./public/style.css">
+  <script type="module" src="./public/app.mjs"></script>
 </head>
-<body>
-<header>
-  <h1>AFAL Site Market</h1>
-  <p>Твоя ідея — наш наступний вебпроєкт.</p>
-  <a class="btn" href="#catalog">Обрати тип сайту</a>
-</header>
-
-<main>
-  <h2 id="catalog">Який сайт тобі потрібен?</h2>
-  <p style="text-align:center;color:#b7bfdc">
-    Обери категорію, щоб дізнатися, як замовити власний сайт.
-  </p>
-
-  <div class="products">
-    <article class="card">
-      <div class="emoji">🛍️</div>
-      <h3>Магазин товарів</h3>
-      <p>Індивідуальний дизайн для товарів, каталогу та замовлень.</p>
-      <button class="btn" data-category="Магазин товарів">Переглянути</button>
-    </article>
-
-    <article class="card">
-      <div class="emoji">🎮</div>
-      <h3>Ігровий сайт</h3>
-      <p>Сайт для гри, ігрового проєкту або спільноти.</p>
-      <button class="btn" data-category="Ігровий сайт">Переглянути</button>
-    </article>
-
-    <article class="card">
-      <div class="emoji">💼</div>
-      <h3>Сайт-портфоліо</h3>
-      <p>Покажи свої роботи, послуги та проєкти в інтернеті.</p>
-      <button class="btn" data-category="Сайт-портфоліо">Переглянути</button>
-    </article>
-
-    <article class="card">
-      <div class="emoji">🌐</div>
-      <h3>Інший сайт</h3>
-      <p>Маєш власну ідею? Обговоримо індивідуальний проєкт.</p>
-      <button class="btn" data-category="Інший сайт">Переглянути</button>
-    </article>
-  </div>
-
-  <section class="panel hidden" id="order-menu">
-    <div class="emoji">📂</div>
-    <h2 id="selected-title">Обрана категорія</h2>
-    <h3>Готових сайтів поки немає</h3>
-    <p>Кожен проєкт створюється під вимоги замовника. Натисни нижче, щоб обговорити свій сайт.</p>
-    <button class="btn" id="create-site">Створити сайт</button>
-    <br><br>
-    <button class="btn secondary" id="back-to-catalog">Назад до категорій</button>
-  </section>
-
-  <section class="panel contact hidden" id="contact">
-    <div class="emoji">🚀</div>
-    <h2>Замовити сайт в AFAL</h2>
-    <p id="contact-description">Напиши в Telegram і розкажи про свою ідею.</p>
-    <p>Обговоримо дизайн, функції та вартість проєкту.</p>
-    <a class="btn telegram" href="https://t.me/artemis393" target="_blank" rel="noopener noreferrer">
-      Написати в Telegram
-    </a>
-    <p class="small">Вартість узгоджується індивідуально перед початком роботи.</p>
-    <button class="btn secondary" id="back-to-menu">Назад</button>
-  </section>
-</main>
-
-<footer>© 2026 AFAL Site Market</footer>
-
-<script>
-const orderMenu=document.getElementById("order-menu");
-const contact=document.getElementById("contact");
-const selectedTitle=document.getElementById("selected-title");
-const contactDescription=document.getElementById("contact-description");
-let selectedCategory="";
-
-document.querySelectorAll("[data-category]").forEach(button=>{
-  button.addEventListener("click",()=>{
-    selectedCategory=button.dataset.category;
-    selectedTitle.textContent=selectedCategory;
-    orderMenu.classList.remove("hidden");
-    contact.classList.add("hidden");
-    orderMenu.scrollIntoView({behavior:"smooth",block:"center"});
-  });
-});
-
-document.getElementById("create-site").addEventListener("click",()=>{
-  contactDescription.textContent="Ти обрав: "+selectedCategory+". Напиши в Telegram, щоб обговорити свій проєкт.";
-  contact.classList.remove("hidden");
-  contact.scrollIntoView({behavior:"smooth",block:"center"});
-});
-
-document.getElementById("back-to-catalog").addEventListener("click",()=>{
-  orderMenu.classList.add("hidden");
-  contact.classList.add("hidden");
-  document.getElementById("catalog").scrollIntoView({behavior:"smooth"});
-});
-
-document.getElementById("back-to-menu").addEventListener("click",()=>{
-  contact.classList.add("hidden");
-  orderMenu.classList.remove("hidden");
-  orderMenu.scrollIntoView({behavior:"smooth",block:"center"});
-});
-</script>
+<body data-api-base="">
+  <a class="skip-link" href="#main">Перейти до вмісту</a>
+  <header class="site-header" id="top">
+    <div class="wrap header-inner">
+      <a class="brand" href="./" aria-label="AFAL Site Market · Головна"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 30 30" fill="none"><path d="M5 24 14 6h4l8 18h-5l-5-12-6 12H5Z" fill="currentColor"/><path d="M14 19h4l2 5h-8l2-5Z" fill="currentColor"/></svg></span><span class="brand-name">AFAL<span>Site Market</span></span></a>
+      <nav class="primary-nav" id="primary-nav" aria-label="Меню">
+        <a href="#catalog">Послуги</a> <a href="#portfolio">Портфоліо</a> <a href="#pricing">Ціни</a> <a href="#consult">AI-консультант</a> <a href="#faq">FAQ</a>
+      </nav>
+      <div class="header-actions">
+        <a class="language" href="./en/" lang="en" hreflang="en" aria-label="Switch to English">EN</a>
+        <button type="button" class="icon-button" data-theme-toggle aria-label="Змінити тему"><svg class="icon sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg><svg class="icon moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 14.4A8.9 8.9 0 0 1 9.6 3.2a9 9 0 1 0 11.2 11.2Z"/></svg></button>
+        <a class="button primary header-cta" href="#order">Замовити сайт</a>
+        <button type="button" class="icon-button mobile-menu" data-menu-toggle aria-label="Меню" aria-controls="primary-nav" aria-expanded="false"><svg class="icon " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+      </div>
+    </div>
+  </header>
+  <main id="main">
+    <section class="hero wrap" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="eyebrow">Студія веброзробки</p>
+        <h1 id="hero-title">Сайти, створені<br><em>під вашу ідею.</em></h1>
+        <p class="hero-description">Від першого портфоліо до великої бізнес-платформи. Оберіть формат, розрахуйте бюджет і розкажіть нам про свій проєкт.</p>
+        <div class="actions"><a href="#order" class="button primary">Замовити сайт</a><a href="#portfolio" class="button secondary">Дивитися портфоліо</a></div>
+      </div>
+      <div class="hero-visual">
+        <img src="./public/hero.webp" width="1000" height="1000" alt="" fetchpriority="high">
+        <div class="hero-estimate"><span>Стартова вартість</span><strong>від $40</strong></div>
+      </div>
+      <ul class="hero-features"><li><svg class="icon " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 4 4 10-10"/></svg>Індивідуальний дизайн</li><li><svg class="icon " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 4 4 10-10"/></svg>Адаптація під усі екрани</li><li><svg class="icon " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 4 4 10-10"/></svg>Попередній кошторис</li></ul>
+    </section>
+    <section class="section wrap" id="catalog">
+      <div class="catalog-header">
+        <div class="section-heading"><p class="eyebrow">Послуги</p><h2>Який сайт вам потрібен?</h2><p>Порівняйте формати від компактної візитки до платформи з індивідуальною логікою.</p></div>
+        <div class="filters" role="group" aria-label="Послуги">
+          <button type="button" data-catalog-filter="all" aria-pressed="true">Усі послуги</button>
+          <button type="button" data-catalog-filter="budget" aria-pressed="false">Бюджетні</button>
+          <button type="button" data-catalog-filter="pro" aria-pressed="false">Професійні</button>
+        </div>
+      </div>
+      <div class="service-grid">
+      <article class="service-card" data-service-tier="budget">
+        <div class="service-head"><div class="service-icon"><svg class="icon " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18m0-18a15 15 0 0 0 0 18"/></svg></div><span>Бюджетні</span></div>
+        <h3>Сайт-візитка</h3>
+        <p>Послуги, коротко про вас і контакти на одній сторінці.</p>
+        <div class="service-bottom"><span><small>від</small> $40</span><a href="#order" class="button small secondary" data-pick-service="business-card">Обрати<span class="sr-only"> · Сайт-візитка</span></a></div>
+      </article>
+      <article class="service-card" data-service-tier="budget">
+        <div class="service-head"><div class="service-icon"><svg class="icon " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="m5 16 4-5 4 4 3-3 3 4"/><circle cx="15.5" cy="8.5" r="1"/></svg></div><span>Бюджетні</span></div>
+        <h3>Сайт-портфоліо</h3>
+        <p>Галерея робіт, сторінки проєктів і зручний спосіб зв’язатися з вами.</p>
+        <div class="service-bottom"><span><small>від</small> $60</span><a href="#order" class="button small secondary" data-pick-service="portfolio">Обрати<span class="sr-only"> · Сайт-портфоліо</span></a></div>
+      </article>
+      <article class="service-card" data-service-tier="budget">
+        <div class="service-head"><div class="service-icon"><svg class="icon " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 7h8c2.6 0 4 1.7 4.5 3.5l1.2 4.4c.7 2.5-1.7 4.1-3.6 2.4L15 14H9l-3.1 3.3c-1.9 1.7-4.3.1-3.6-2.4l1.2-4.4C4 8.7 5.4 7 8 7Z"/><path d="M8 9v4m-2-2h4m6-1h.01m2 2h.01"/></svg></div><span>Бюджетні</span></div>
+        <h3>Ігровий лендінг</h3>
+        <p>Промосторінка для гри, сервера або спільноти з медіа та кнопкою вступу.</p>
+        <div class="service-bottom"><span><small>від</small> $75</span><a href="#order" class="button small secondary" data-pick-service="gaming-landing">Обрати<span class="sr-only"> · Ігровий лендінг</span></a></div>
+      </article>
+      <article class="service-card" data-service-tier="budget">
+        <div class="service-head"><div class="service-icon"><svg class="icon " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h16l1 13H3L4 8Z"/><path d="M8 9V7a4 4 0 1 1 8 0v2"/></svg></div><span>Бюджетні</span></div>
+        <h3>Простий магазин</h3>
+        <p>Невеликий каталог із картками товарів і заявками на замовлення.</p>
+        <div class="service-bottom"><span><small>від</small> $120</span><a href="#order" class="button small secondary" data-pick-service="simple-shop">Обрати<span class="sr-only"> · Простий магазин</span></a></div>
+      </article>
+      <article class="service-card" data-service-tier="pro">
+        <div class="service-head"><div class="service-icon"><svg class="icon " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="1"/><path d="M9 7h1m4 0h1M9 11h1m4 0h1m-6 4h1m4 0h1m-4 6v-3h2v3"/></svg></div><span>Професійні</span></div>
+        <h3>Великий корпоративний сайт</h3>
+        <p>Послуги, команда, кейси та розділи компанії в єдиній структурі.</p>
+        <div class="service-bottom"><span><small>від</small> 15 000 грн</span><a href="#order" class="button small secondary" data-pick-service="corporate">Обрати<span class="sr-only"> · Великий корпоративний сайт</span></a></div>
+      </article>
+      <article class="service-card" data-service-tier="pro">
+        <div class="service-head"><div class="service-icon"><svg class="icon " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 4h3l2.8 10.2a1 1 0 0 0 1 .8h9.7a1 1 0 0 0 1-.7L22 7H6"/><circle cx="10" cy="19" r="1"/><circle cx="18" cy="19" r="1"/></svg></div><span>Професійні</span></div>
+        <h3>Інтернет-магазин</h3>
+        <p>Каталог із фільтрами, кошик, оформлення та керування замовленнями.</p>
+        <div class="service-bottom"><span><small>від</small> 25 000 грн</span><a href="#order" class="button small secondary" data-pick-service="ecommerce">Обрати<span class="sr-only"> · Інтернет-магазин</span></a></div>
+      </article>
+      <article class="service-card" data-service-tier="pro">
+        <div class="service-head"><div class="service-icon"><svg class="icon " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 7h8c2.6 0 4 1.7 4.5 3.5l1.2 4.4c.7 2.5-1.7 4.1-3.6 2.4L15 14H9l-3.1 3.3c-1.9 1.7-4.3.1-3.6-2.4l1.2-4.4C4 8.7 5.4 7 8 7Z"/><path d="M8 9v4m-2-2h4m6-1h.01m2 2h.01"/></svg></div><span>Професійні</span></div>
+        <h3>Ігровий портал</h3>
+        <p>Центр ігрової спільноти з новинами, подіями та рейтингами.</p>
+        <div class="service-bottom"><span><small>від</small> 30 000 грн</span><a href="#order" class="button small secondary" data-pick-service="gaming-portal">Обрати<span class="sr-only"> · Ігровий портал</span></a></div>
+      </article>
+      <article class="service-card" data-service-tier="pro">
+        <div class="service-head"><div class="service-icon"><svg class="icon " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5 9-5ZM3 12l9 5 9-5m-18 4 9 5 9-5"/></svg></div><span>Професійні</span></div>
+        <h3>Бізнес-платформа</h3>
+        <p>Особисті кабінети, ролі та керування вашими бізнес-процесами.</p>
+        <div class="service-bottom"><span><small>від</small> 45 000 грн</span><a href="#order" class="button small secondary" data-pick-service="platform">Обрати<span class="sr-only"> · Бізнес-платформа</span></a></div>
+      </article>
+      <article class="service-card" data-service-tier="pro">
+        <div class="service-head"><div class="service-icon"><svg class="icon " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 2 2.5 7.5L22 12l-7.5 2.5L12 22l-2.5-7.5L2 12l7.5-2.5L12 2Z"/></svg></div><span>Професійні</span></div>
+        <h3>Масштабний індивідуальний проєкт</h3>
+        <p>Індивідуальна архітектура для складних функцій, даних та інтеграцій.</p>
+        <div class="service-bottom"><span><small>від</small> 50 000 грн</span><a href="#order" class="button small secondary" data-pick-service="custom">Обрати<span class="sr-only"> · Масштабний індивідуальний проєкт</span></a></div>
+      </article></div>
+    </section>
+    <section class="section wrap" id="portfolio">
+      <div class="section-heading"><p class="eyebrow">Портфоліо</p><h2>Портфоліо концептів</h2><p>Три демонстраційні концепти AFAL. Вони показують різні підходи до дизайну й структури сайту.</p></div>
+      <div class="project-grid">
+      <article class="project-card">
+        <div class="project-art form" aria-hidden="true"><div class="mock">
+        <div class="mock-nav"><b>FORM SUPPLY</b><span></span><span></span></div>
+        <div class="mock-content"><b>Добірка для дому</b><div class="mock-object"></div><span></span></div>
+      </div></div>
+        <div class="project-info"><p>Магазин · Демонстраційний концепт</p><h3>FORM SUPPLY</h3><p>Каталог предметів для дому з великими фото, добірками та картками товарів.</p><button type="button" class="button secondary small" data-project-open="form" data-title="FORM SUPPLY" data-description="Каталог предметів для дому з великими фото, добірками та картками товарів.">Відкрити концепт<span class="sr-only"> · FORM SUPPLY</span></button></div>
+      </article>
+      <template id="art-form"><div class="project-art form" aria-hidden="true"><div class="mock">
+        <div class="mock-nav"><b>FORM SUPPLY</b><span></span><span></span></div>
+        <div class="mock-content"><b>Добірка для дому</b><div class="mock-object"></div><span></span></div>
+      </div></div></template>
+      <article class="project-card">
+        <div class="project-art frame" aria-hidden="true"><div class="mock">
+        <div class="mock-nav"><b>STILL FRAME</b><span></span><span></span></div>
+        <div class="mock-content"><b>Простір для творчості</b><div class="mock-object"></div><span></span></div>
+      </div></div>
+        <div class="project-info"><p>Портфоліо · Демонстраційний концепт</p><h3>STILL FRAME</h3><p>Сайт творчої студії з галереєю робіт і сторінкою для кожного проєкту.</p><button type="button" class="button secondary small" data-project-open="frame" data-title="STILL FRAME" data-description="Сайт творчої студії з галереєю робіт і сторінкою для кожного проєкту.">Відкрити концепт<span class="sr-only"> · STILL FRAME</span></button></div>
+      </article>
+      <template id="art-frame"><div class="project-art frame" aria-hidden="true"><div class="mock">
+        <div class="mock-nav"><b>STILL FRAME</b><span></span><span></span></div>
+        <div class="mock-content"><b>Простір для творчості</b><div class="mock-object"></div><span></span></div>
+      </div></div></template>
+      <article class="project-card">
+        <div class="project-art respawn" aria-hidden="true"><div class="mock">
+        <div class="mock-nav"><b>RESPAWN</b><span></span><span></span></div>
+        <div class="mock-content"><b>Світ гри</b><div class="mock-object"></div><span></span></div>
+      </div></div>
+        <div class="project-info"><p>Ігровий лендінг · Демонстраційний концепт</p><h3>RESPAWN</h3><p>Сторінка для презентації гри з описом світу, медіагалереєю й блоком спільноти.</p><button type="button" class="button secondary small" data-project-open="respawn" data-title="RESPAWN" data-description="Сторінка для презентації гри з описом світу, медіагалереєю й блоком спільноти.">Відкрити концепт<span class="sr-only"> · RESPAWN</span></button></div>
+      </article>
+      <template id="art-respawn"><div class="project-art respawn" aria-hidden="true"><div class="mock">
+        <div class="mock-nav"><b>RESPAWN</b><span></span><span></span></div>
+        <div class="mock-content"><b>Світ гри</b><div class="mock-object"></div><span></span></div>
+      </div></div></template></div>
+      <dialog id="project-dialog" class="project-dialog" aria-labelledby="project-dialog-title">
+        <button type="button" class="icon-button close-dialog" data-project-close aria-label="Закрити"><svg class="icon " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+        <div data-project-art></div><div class="project-info"><p>Демонстраційний концепт</p><h3 id="project-dialog-title" data-project-title></h3><p data-project-description></p></div>
+      </dialog>
+    </section>
+    <section class="section wrap" id="pricing">
+      <div class="section-heading"><p class="eyebrow">Ціни</p><h2>Стартові тарифи</h2><p>Ціни орієнтовні. Остаточний кошторис узгоджуємо після обговорення обсягу робіт.</p></div>
+      <div class="tier-grid"><article class="tier-card budget">
+      <header><h3>Бюджетні сайти</h3><p>Для швидкого запуску з компактним набором функцій.</p></header>
+      <table aria-label="Бюджетні сайти"><tbody><tr><th scope="row">Сайт-візитка</th><td><small>від</small> $40</td></tr><tr><th scope="row">Сайт-портфоліо</th><td><small>від</small> $60</td></tr><tr><th scope="row">Ігровий лендінг</th><td><small>від</small> $75</td></tr><tr><th scope="row">Простий магазин</th><td><small>від</small> $120</td></tr></tbody></table>
+    </article> <article class="tier-card pro">
+      <header><h3>Професійні сайти</h3><p>Для складної структури, інтеграцій і бізнес-процесів.</p></header>
+      <table aria-label="Професійні сайти"><tbody><tr><th scope="row">Великий корпоративний сайт</th><td><small>від</small> 15 000 грн</td></tr><tr><th scope="row">Інтернет-магазин</th><td><small>від</small> 25 000 грн</td></tr><tr><th scope="row">Ігровий портал</th><td><small>від</small> 30 000 грн</td></tr><tr><th scope="row">Бізнес-платформа</th><td><small>від</small> 45 000 грн</td></tr><tr><th scope="row">Масштабний індивідуальний проєкт</th><td><small>від</small> 50 000 грн</td></tr></tbody></table>
+    </article></div>
+      <p class="pricing-goal">Ціль AFAL — пропонувати зіставну функціональність приблизно за половину типової ринкової ціни. Фактична різниця залежить від вимог і пропозицій, з якими порівнюєте.</p>
+    </section>
+    <section class="section wrap" id="consult">
+      <div class="consult-panel">
+        <div><div class="section-heading"><p class="eyebrow">AI-консультант</p><h2>Перетворіть ідею на техзавдання</h2><p>Опишіть сайт своїми словами. Консультант запропонує формат, підготує чернетку технічного завдання та допоможе з оцінкою вартості.</p></div><div class="prompts"><button class="button small secondary" type="button" data-consult-prompt="Магазин з онлайн-оплатою">Магазин з онлайн-оплатою</button><button class="button small secondary" type="button" data-consult-prompt="Портфоліо дизайнера на 5 сторінок">Портфоліо дизайнера на 5 сторінок</button><button class="button small secondary" type="button" data-consult-prompt="Ігровий портал з акаунтами">Ігровий портал з акаунтами</button></div></div>
+        <div class="consult-main">
+          <form id="consult-form" method="post">
+            <label class="field">Опишіть ваш проєкт<textarea name="message" rows="4" minlength="3" maxlength="2000" required placeholder="Наприклад, мені потрібен сайт для студії з галереєю робіт і записом на консультацію…" aria-describedby="consult-privacy"></textarea></label>
+            <p class="form-note" id="consult-privacy">Введіть тільки вимоги до сайту. За підключеного AI опис передається OpenAI для підготовки відповіді. Для контактів є окрема форма замовлення.</p>
+            <button type="submit" class="button primary"><svg class="icon " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 2 2.5 7.5L22 12l-7.5 2.5L12 22l-2.5-7.5L2 12l7.5-2.5L12 2Z"/></svg> Отримати рекомендацію</button>
+          </form>
+          <p class="feedback" data-consult-feedback role="status"></p>
+          <div class="result" data-consult-result hidden>
+            <p class="mode" data-consult-mode></p>
+            <p data-consult-answer></p>
+            <h3>Чернетка технічного завдання</h3><pre data-consult-brief></pre>
+            <div class="actions"><button type="button" class="button primary small" data-apply-suggestion>Перенести в замовлення</button><button type="button" class="button secondary small" data-copy-brief>Копіювати</button></div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="section wrap" id="order">
+      <div class="section-heading"><p class="eyebrow">Замовити сайт</p><h2>Зберіть своє замовлення</h2><p>Оберіть тип сайту, дизайн і функції. Попередній кошторис оновиться автоматично.</p></div>
+      <form class="builder" id="order-form" method="post">
+        <div class="builder-fields">
+          <fieldset><legend>Параметри сайту</legend><div class="field-grid">
+            <label class="field">Тип сайту<select name="serviceId" required><option value="business-card" selected>Сайт-візитка</option><option value="portfolio">Сайт-портфоліо</option><option value="gaming-landing">Ігровий лендінг</option><option value="simple-shop">Простий магазин</option><option value="corporate">Великий корпоративний сайт</option><option value="ecommerce">Інтернет-магазин</option><option value="gaming-portal">Ігровий портал</option><option value="platform">Бізнес-платформа</option><option value="custom">Масштабний індивідуальний проєкт</option></select></label>
+            <label class="field">Дизайн<select name="design" required><option value="standard" selected>Стандартний дизайн</option><option value="premium">Преміальний дизайн</option></select></label>
+            <label class="field">Кількість сторінок<input name="pages" type="number" min="1" max="50" value="1" required></label>
+            <label class="field"><span>Ваш бюджет <span class="subtle">· необов’язково</span></span><span class="input-suffix"><input name="budget" type="number" min="1" step="1" inputmode="numeric" placeholder="100"><span id="budget-currency">USD</span></span></label>
+          </div></fieldset>
+          <fieldset><legend>Додаткові функції</legend><div class="checks"><label class="check"><input name="features" type="checkbox" value="multilingual"><span>Додаткова мова</span></label><label class="check"><input name="features" type="checkbox" value="booking"><span>Онлайн-бронювання</span></label><label class="check"><input name="features" type="checkbox" value="cms"><span>Редагування вмісту (CMS)</span></label><label class="check"><input name="features" type="checkbox" value="payments"><span>Онлайн-оплата</span></label><label class="check"><input name="features" type="checkbox" value="accounts"><span>Особисті кабінети</span></label><label class="check"><input name="features" type="checkbox" value="integrations"><span>Інтеграція зі стороннім сервісом</span></label></div></fieldset>
+          <fieldset data-online-only hidden disabled><legend>Контакт для відповіді</legend><div class="field-grid">
+            <label class="field">Ваше ім’я<input name="name" autocomplete="name" maxlength="100" required></label>
+            <label class="field">Email або @Telegram<input name="contact" minlength="3" maxlength="160" required></label>
+            <label class="field full"><span>Що ще варто врахувати? <span class="subtle">· необов’язково</span></span><textarea name="details" rows="3" maxlength="1600"></textarea></label>
+          </div><label class="consent"><input name="consent" type="checkbox" required><span>Погоджуюся на збереження й обробку даних для відповіді на заявку в AFAL, зокрема на передачу заявки в Telegram.</span></label></fieldset>
+        </div>
+        <aside class="estimate-box">
+          <p class="eyebrow">Попередній кошторис</p>
+          <p class="total" aria-live="polite"><strong id="estimate-total">40</strong> <span id="estimate-currency">USD</span></p>
+          <p>Змінюється залежно від обраного дизайну, кількості сторінок і функцій. Остаточну суму узгодимо разом.</p>
+          <div class="estimate-actions"><button type="submit" class="button primary" data-order-submit><span data-order-submit-label>Надіслати заявку</span></button><a class="button secondary" href="https://t.me/artemis393" target="_blank" rel="noopener noreferrer" data-telegram-fallback><svg class="icon " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11.5 21 4l-4.2 16-5.2-4-3 3v-5.1L18 7.5 6.7 13.4 3 11.5Z"/></svg> Написати в Telegram</a></div>
+          <p class="feedback" data-order-feedback role="status"></p>
+          <div class="result" data-order-result hidden>
+            <b>Код відстеження</b>
+            <code data-order-code></code>
+            <p data-order-status></p>
+            <p data-order-notification></p>
+            <div class="actions"><button type="button" class="button secondary small" data-copy-code>Копіювати</button><button type="button" class="button secondary small" data-use-code>Перевірити статус</button></div>
+          </div>
+        </aside>
+      </form>
+    </section>
+    <section class="wrap" id="tracking">
+      <div class="tracking">
+        <div><h2>Статус замовлення</h2><p>Введіть код із підтвердження заявки. Збережіть його, щоб перевіряти статус надалі.</p></div>
+        <div><form id="status-form" method="post"><label class="field" data-status-input><span class="sr-only">Код відстеження</span><input name="code" type="text" placeholder="AFAL-…" required maxlength="37" autocomplete="off" spellcheck="false"></label><button type="submit" class="button secondary"><span data-status-submit-label>Перевірити статус</span></button></form>
+          <p class="feedback" data-status-feedback role="status"></p><div class="result" data-status-result hidden><p><strong data-status-label></strong></p><p data-status-updated></p></div></div>
+      </div>
+    </section>
+    <section class="section wrap" id="about">
+      <div class="section-heading"><p class="eyebrow">Про AFAL</p><h2>Індивідуальна розробка з AFAL</h2><p>AFAL Site Market розробляє сайти на замовлення. Спершу узгоджуємо цілі, потрібні сторінки й функції. На цій основі готуємо кошторис та план робіт.</p></div>
+      <div class="steps"><article><div class="service-icon"><svg class="icon " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 4 4 10-10"/></svg></div><h3>Обговорюємо</h3><p>Визначаємо завдання сайту, аудиторію та пріоритети.</p></article><article><div class="service-icon"><svg class="icon " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 4 4 10-10"/></svg></div><h3>Проєктуємо</h3><p>Погоджуємо структуру, дизайн і кошторис.</p></article><article><div class="service-icon"><svg class="icon " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 4 4 10-10"/></svg></div><h3>Готуємо до запуску</h3><p>Перевіряємо адаптивність і основні сценарії користувачів.</p></article></div>
+    </section>
+    <section class="section wrap faq" id="faq">
+      <div class="section-heading"><p class="eyebrow">FAQ</p><h2>Часті запитання</h2></div>
+      <div class="questions"><details><summary>Як формується вартість?<svg class="icon " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary><p>Кожен тариф має стартову ціну. У калькуляторі можна врахувати додаткові сторінки, дизайн і функції. Фінальну вартість погоджуємо перед початком робіт.</p></details><details><summary>Чи можна замовити сайт, якого немає в каталозі?<svg class="icon " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary><p>Так. Оберіть «Масштабний індивідуальний проєкт» і опишіть потрібні функції або напишіть напряму в Telegram.</p></details><details><summary>Чи адаптуєте ви сайти під телефон?<svg class="icon " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary><p>Так. Під час розробки враховуємо мобільні телефони, планшети й комп’ютери.</p></details><details><summary>Як відстежити заявку?<svg class="icon " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary><p>Після реєстрації замовлення через форму ви отримаєте код. Введіть його в розділі «Статус замовлення». Якщо звернулися напряму через Telegram, уточнюйте статус у чаті.</p></details><details><summary>Для чого потрібні контактні дані?<svg class="icon " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary><p>AFAL використовує їх, щоб відповісти на заявку та уточнити умови проєкту. Для запиту на видалення надісланих даних напишіть нам у Telegram.</p></details></div>
+    </section>
+    <section class="wrap final-section" id="contact">
+      <div class="contact-panel"><div class="section-heading"><p class="eyebrow">Контакти</p><h2>Обговорімо ваш проєкт</h2><p>Напишіть напряму або оформіть заявку з описом сайту.</p></div><div class="actions"><a class="button primary" href="https://t.me/artemis393" target="_blank" rel="noopener noreferrer" ><svg class="icon " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11.5 21 4l-4.2 16-5.2-4-3 3v-5.1L18 7.5 6.7 13.4 3 11.5Z"/></svg> Написати в Telegram</a><a class="button secondary" href="#order">Замовити сайт</a></div></div>
+    </section>
+    <noscript><p class="wrap">Увімкніть JavaScript, щоб скористатися калькулятором, консультантом і відстеженням. Зв’язатися з AFAL можна через Telegram.</p></noscript>
+  </main>
+  <footer class="site-footer"><div class="wrap footer-inner">
+    <div><a class="brand" href="./" aria-label="AFAL Site Market · Головна"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 30 30" fill="none"><path d="M5 24 14 6h4l8 18h-5l-5-12-6 12H5Z" fill="currentColor"/><path d="M14 19h4l2 5h-8l2-5Z" fill="currentColor"/></svg></span><span class="brand-name">AFAL<span>Site Market</span></span></a><p>Розробка сайтів на замовлення</p></div>
+    <nav aria-label="Меню"><a href="#catalog">Послуги</a> <a href="#about">Про AFAL</a> <a href="#contact">Контакти</a> <a href="#tracking">Статус замовлення</a></nav>
+    <p>© 2026 AFAL Site Market</p>
+  </div></footer>
 </body>
 </html>
